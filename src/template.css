@@ -1,0 +1,33 @@
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #000000;
+  overflow: hidden;
+}
+
+#lab-container {
+  margin: 0;
+  padding: 0;
+  width: 100svw;
+  text-align: center;
+  min-height: 700px;
+  margin: 0;
+  line-height: 0px;
+}
+
+#pixi-lab {
+  display: inline-block;
+  width: 100svw;
+  height: 100svh;
+  min-width: 360px;
+  min-height: 700px;
+  margin: 0;
+}
+
+#lab-tweakpane {
+  position: fixed;
+  top: 22px;
+  left: 22px;
+  min-width: 200px;
+  z-index: 1;
+}
