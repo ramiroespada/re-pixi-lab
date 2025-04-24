@@ -4,26 +4,28 @@ import { Container, Rectangle, Point, Graphics } from "pixi.js";
 import Blob from "./blob";
 import { binaryToType, lerp } from "./utils";
 import Label from "./label";
+import Options from "./options";
 
 export default class Layer {
 
-
+	private _index: number = 1;
 	private _container!: Container;
 	private _wrapper!: Container;
 	private _graphics!: Graphics;
 	private _area!: Rectangle;
 
-	private _totalBlobs: number = 15;
-	private _blobs: Array<Blob> = [];
+	private _blobs: Array<Blob>;
 	private _labels: Array<Label> = [];
 
 	private _inputValues!: Array<Array<number>>;
 	private _gridValues!: Array<Array<number>>;
-	private _resolution: number = 40;
-	private _interpolation: boolean = true;
-	private _debug: boolean = true;
+	private _resolution!: number;
 
-	constructor(container: Container, area: Rectangle) {
+
+	constructor(container: Container, resolution: number, index: number, area: Rectangle, blobs: Array<Blob>) {
+
+		this._resolution = resolution;
+		this._index = index;
 
 		this._container = container;
 		this._wrapper = new Container({ label: "Layer Wrapper" });
@@ -32,7 +34,7 @@ export default class Layer {
 		this._container.addChild(this._wrapper);
 		this._wrapper.addChild(this._graphics);
 		this._area = area;
-
+		this._blobs = blobs;
 
 		this.resize(area);
 
@@ -40,8 +42,8 @@ export default class Layer {
 
 	private startMap() {
 		this._inputValues = [];
-		const totalInputValuesHeight: number = (1 + this._area.height / this._resolution);
-		const totalInputValuesWidth: number = (1 + this._area.width / this._resolution);
+		const totalInputValuesHeight: number = Math.ceil(1 + this._area.height / this._resolution);
+		const totalInputValuesWidth: number = Math.ceil(1 + this._area.width / this._resolution);
 
 		for (let i: number = 0; i < totalInputValuesHeight; i++) {
 			this._inputValues.push(new Array(totalInputValuesWidth));
@@ -54,7 +56,7 @@ export default class Layer {
 		}
 
 
-		if (this._debug && this._resolution >= 20) {
+		if (this._index == 1 && this._resolution >= 32) {
 			this._labels.forEach((label: Label) => {
 				label.destroy();
 			});
@@ -62,23 +64,16 @@ export default class Layer {
 			this._labels = [];
 			for (var y = 0; y < this._inputValues.length; y++) {
 				for (var x = 0; x < this._inputValues[y].length; x++) {
-					this._labels.push(new Label(this._container, y, x, new Point(x * this._resolution + 2, y * this._resolution + 2)));
+					this._labels.push(new Label(this._container, y, x, new Point(x * this._resolution + 4, y * this._resolution + 4)));
 				}
 			}
-		}
-
-		this._blobs.forEach((blob: Blob) => {
-			blob.destroy();
-		});
-		for (let i: number = 0; i < this._totalBlobs; i++) {
-			this._blobs.push(new Blob(this._wrapper, 5 + Math.round(Math.random() * 40), new Point(Math.random() * this._area.width, Math.random() * this._area.height), 1 - Math.random() * 2, 1 - Math.random() * 2));
 		}
 	}
 
 	private lineTo(from: Array<number>, to: Array<number>) {
 
 		this._graphics.moveTo(from[0], from[1]);
-		this._graphics.lineTo(to[0], to[1]).stroke({ color: 0xFF00FF, alpha: 1, width: 3 });
+		this._graphics.lineTo(to[0], to[1]).stroke({ color: 0xFF00FF, alpha: 1, width: 2 });
 
 	}
 
@@ -88,17 +83,8 @@ export default class Layer {
 	}
 
 
-	public draw() {
+	public draw(options: Options) {
 		if (this._area) {
-
-			// Move Blobs
-
-			this._blobs.forEach((blob: Blob) => {
-				blob.move(this._area);
-				if (this._debug) {
-					blob.draw(this._area);
-				}
-			});
 
 			// Update Grid Points
 			for (var y = 0; y < this._inputValues.length; y++) {
@@ -108,7 +94,7 @@ export default class Layer {
 					var ry = y * this._resolution;
 					this._blobs.forEach((blob: Blob) => {
 						addedDistances +=
-							blob.r2 / ((blob.pos.y - ry) ** 2 + (blob.pos.x - rx) ** 2);
+							(blob.r2 * (this._index * options.layersDistanceFactor)) / ((blob.pos.y - ry) ** 2 + (blob.pos.x - rx) ** 2);
 					});
 					this._inputValues[y][x] = addedDistances;
 				}
@@ -126,16 +112,21 @@ export default class Layer {
 			}
 
 			// Draw Points
-			if (this._debug) {
+			if (options.debug) {
 				this._labels.forEach((label: Label) => {
-					label.draw(this._inputValues[label.y][label.x].toFixed(1), this._inputValues[label.y][label.x] > 1 ? true : false);
+					label.show();
+					label.draw(this._inputValues[label.y][label.x].toFixed(1), this._inputValues[label.y][label.x] > 1 ? true : false, this._area);
+				});
+			} else {
+				this._labels.forEach((label: Label) => {
+					label.hide();
 				});
 			}
 
 			// Draw Lines
 			this._graphics.clear();
-			if (this._debug) {
-				this._graphics.rect(0, 0, this._area.width, this._area.height).stroke({ color: 0xFF00FF, alpha: 0.25 });
+			if (!options.fullCanvasSize) {
+				this._graphics.rect(this._area.x, this._area.y, this._area.width, this._area.height).stroke({ color: 0x666666 });
 			}
 
 			for (var y = 0; y < this._gridValues.length; y++) {
@@ -146,7 +137,7 @@ export default class Layer {
 					let c: Array<number> = [x * this._resolution + this._resolution / 2, y * this._resolution + this._resolution];
 					let d: Array<number> = [x * this._resolution, y * this._resolution + this._resolution / 2];
 
-					if (this._interpolation) {
+					if (options.interpolation) {
 						const nw: number = this._inputValues[y][x];
 						const ne: number = this._inputValues[y][x + 1];
 						const se: number = this._inputValues[y + 1][x + 1];
@@ -162,6 +153,7 @@ export default class Layer {
 						];
 						d = [x * this._resolution, y * this._resolution + this._resolution * lerp(1, nw, sw)];
 					}
+
 
 					switch (this._gridValues[y][x]) {
 						case 1:
@@ -199,12 +191,22 @@ export default class Layer {
 						default:
 							break;
 					}
+
+
 				}
 			}
 
 		}
 	}
 
+	public destroy() {
+		this._labels.forEach((label: Label) => {
+			label.destroy();
+		});
+		this._container.removeChild(this._wrapper);
+		this._inputValues = [];
+		this._gridValues = [];
+	}
 }
 
 

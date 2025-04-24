@@ -1,5 +1,6 @@
 
 import { Container, Graphics, Point, Rectangle } from "pixi.js";
+import Options from "./options";
 
 export default class Blob {
 
@@ -12,7 +13,8 @@ export default class Blob {
 	private _radius!: number;
 	private _velocity!: Point;
 
-	constructor(container: Container, radius: number, pos: Point, velX: number, velY: number) {
+	constructor(container: Container, radius: number, pos: Point, velX: number, velY: number, speedFactor: number) {
+
 
 		this._container = container;
 		this._wrapper = new Container({ label: "Layer" });
@@ -24,13 +26,12 @@ export default class Blob {
 
 		this.pos = new Point(pos.x, pos.y);
 
-		const adjusted_r: number = (this._radius * 1.25);
-		const r: number = adjusted_r + adjusted_r * Math.random();
+		const r: number = this._radius + this._radius;
 		this.r2 = r * r;
 
 		this._velocity = new Point(velX, velY);
-		this._velocity.x *= 2;
-		this._velocity.y *= 2;
+		this._velocity.x *= speedFactor;
+		this._velocity.y *= speedFactor;
 	}
 
 
@@ -49,13 +50,12 @@ export default class Blob {
 
 	}
 
-	public draw(area: Rectangle) {
-
+	public draw(options: Options) {
 		this._graphics.clear();
-		this._graphics.ellipse(this.pos.x, this.pos.y, this._radius * 2, this._radius * 2).stroke({ color: 0x666666, alpha: 0.5 });
-
+		if (options.debug) {
+			this._graphics.ellipse(this.pos.x, this.pos.y, this._radius * 2, this._radius * 2).stroke({ color: 0x666666 });
+		}
 	}
-
 
 	public destroy() {
 		this._graphics.clear();

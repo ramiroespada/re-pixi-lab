@@ -1,5 +1,5 @@
 
-import { Container, Point, TextStyle, Text } from "pixi.js";
+import { Container, Point, TextStyle, Text, Rectangle } from "pixi.js";
 
 export default class Label {
 
@@ -23,10 +23,20 @@ export default class Label {
 		this._container.addChild(this._text);
 	}
 
+	public hide() {
+		this._text.visible = false;
+	}
 
-	public draw(value: string, selected: boolean) {
-		this._text.style.fill = selected ? 0xFF00FF : 0x999999;
+	public show() {
+		this._text.visible = true;
+	}
+
+	public draw(value: string, selected: boolean, area: Rectangle) {
+		this._text.style.fill = selected ? 0xFF00FF : Number(value) < 0.3 ? 0x444444 : 0x666666;
 		this._text.text = value;
+		if (this._text.x > area.width || this._text.y > area.height) {
+			this._text.visible = false;
+		}
 	}
 
 	public destroy() {
