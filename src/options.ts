@@ -5,14 +5,14 @@ export default class Options {
 	screenHeight: number = 0;
 	tweaksExpanded: boolean = true;
 	maxFPS: number = 60;
-	//
-	debug: boolean = true;
-	fullCanvasSize: boolean = false;
-	useCursor: boolean = false;
-	interpolation: boolean = true;
 	layerWidth: number = 800;
 	layerHeight: number = 800;
-	resolution: number = 32;
+	//
+	debug: boolean = true;
+	fullCanvasSize: boolean = true;
+	useCursor: boolean = true;
+	interpolation: boolean = true;
+	resolution: number = 44;
 	totalLayers: number = 7;
 	totalBlobs: number = 8;
 	blobsMinSize: number = 20;

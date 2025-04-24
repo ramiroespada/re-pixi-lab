@@ -13,8 +13,7 @@ export default class Blob {
 	private _radius!: number;
 	private _velocity!: Point;
 
-	constructor(container: Container, radius: number, pos: Point, velX: number, velY: number, speedFactor: number) {
-
+	constructor(container: Container, pos: Point) {
 
 		this._container = container;
 		this._wrapper = new Container({ label: "Layer" });
@@ -22,16 +21,19 @@ export default class Blob {
 
 		this._container.addChild(this._wrapper);
 		this._wrapper.addChild(this._graphics);
-		this._radius = radius;
-
 		this.pos = new Point(pos.x, pos.y);
+	}
 
+	public setRadius(options: Options) {
+		this._radius = options.blobsMinSize + Math.random() * (options.blobsMaxSize - options.blobsMinSize);
 		const r: number = this._radius + this._radius;
 		this.r2 = r * r;
+	}
 
-		this._velocity = new Point(velX, velY);
-		this._velocity.x *= speedFactor;
-		this._velocity.y *= speedFactor;
+	public setVelocity(options: Options) {
+		this._velocity = new Point(1 - Math.random() * 2, 1 - Math.random() * 2);
+		this._velocity.x *= options.blobsSpeedFactor;
+		this._velocity.y *= options.blobsSpeedFactor;
 	}
 
 

@@ -15,12 +15,14 @@ export default class Layer {
 	private _area!: Rectangle;
 
 	private _blobs: Array<Blob>;
-	private _labels: Array<Label> = [];
 
 	private _inputValues!: Array<Array<number>>;
 	private _gridValues!: Array<Array<number>>;
 	private _resolution!: number;
 
+	public get inputValues(): Array<Array<number>> {
+		return this._inputValues;
+	}
 
 	constructor(container: Container, resolution: number, index: number, area: Rectangle, blobs: Array<Blob>) {
 
@@ -53,20 +55,6 @@ export default class Layer {
 		const totalGridValues: number = this._inputValues.length - 1;
 		for (let i: number = 0; i < totalGridValues; i++) {
 			this._gridValues.push(new Array(this._inputValues[0].length - 1));
-		}
-
-
-		if (this._index == 1 && this._resolution >= 32) {
-			this._labels.forEach((label: Label) => {
-				label.destroy();
-			});
-
-			this._labels = [];
-			for (var y = 0; y < this._inputValues.length; y++) {
-				for (var x = 0; x < this._inputValues[y].length; x++) {
-					this._labels.push(new Label(this._container, y, x, new Point(x * this._resolution + 4, y * this._resolution + 4)));
-				}
-			}
 		}
 	}
 
@@ -111,23 +99,8 @@ export default class Layer {
 				}
 			}
 
-			// Draw Points
-			if (options.debug) {
-				this._labels.forEach((label: Label) => {
-					label.show();
-					label.draw(this._inputValues[label.y][label.x].toFixed(1), this._inputValues[label.y][label.x] > 1 ? true : false, this._area);
-				});
-			} else {
-				this._labels.forEach((label: Label) => {
-					label.hide();
-				});
-			}
-
 			// Draw Lines
 			this._graphics.clear();
-			if (!options.fullCanvasSize) {
-				this._graphics.rect(this._area.x, this._area.y, this._area.width, this._area.height).stroke({ color: 0x666666 });
-			}
 
 			for (var y = 0; y < this._gridValues.length; y++) {
 				for (var x = 0; x < this._gridValues[y].length; x++) {
@@ -200,9 +173,6 @@ export default class Layer {
 	}
 
 	public destroy() {
-		this._labels.forEach((label: Label) => {
-			label.destroy();
-		});
 		this._container.removeChild(this._wrapper);
 		this._inputValues = [];
 		this._gridValues = [];
