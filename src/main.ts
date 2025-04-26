@@ -19,12 +19,12 @@ const background: Graphics = new Graphics({ label: "Background" });
 const options: Options = new Options();
 
 let tweakpane!: Pane;
+let mousePressed: boolean = false;
 let state: string = "init";
 let type: string = "WebGL";
 let layers: Array<Layer> = [];
 let blobs: Array<Blob> = [];
 let labels: Array<Label> = [];
-//let dots: Array<Dot> = [];
 
 const resizeHandler = () => {
 
@@ -69,8 +69,9 @@ const resizeHandler = () => {
 		layer.destroy();
 	});
 	layers = [];
-	const colors: Array<string> = ColorSteps.getColorSteps("#de710c", "#f7dd87", options.totalLayers);
-	console.log("RE / [main.ts:74]: colors: ", colors);
+
+	const colors: Array<string> = ColorSteps.getColorSteps("#f7dd87", "#de710c", options.totalLayers);
+
 	for (let i: number = 0; i < options.totalLayers; i++) {
 		const color = colors[i];
 		layers.push(new Layer(layersContainer, options.resolution, (i + 1), new Rectangle(0, 0, options.screenWidth, options.screenHeight), blobs, color));
@@ -82,14 +83,8 @@ const resizeHandler = () => {
 		label.destroy();
 	});
 
-	/*
-	dots.forEach((dot: Dot) => {
-		dot.destroy();
-	});
-	*/
 
-	const labelFreq: number = Math.round(map(options.resolution, 15, 40, 10, 1, true));
-	const dotFreq: number = Math.round(map(options.resolution, 15, 40, 4, 2, true));
+	const labelFreq: number = Math.round(map(options.resolution, 15, 40, 6, 1, true));
 
 	labels = [];
 
@@ -99,11 +94,6 @@ const resizeHandler = () => {
 				if (x % labelFreq == 0 && y % labelFreq == 0) {
 					labels.push(new Label(debugContainer, options, y, x, new Point(x * options.resolution + 4, y * options.resolution + 4), new Rectangle(0, 0, options.screenWidth, options.screenHeight),));
 				}
-
-				if (x % dotFreq == 0 && y % dotFreq == 0) {
-					//dots.push(new Dot(dotsContainer, options, y, x, new Point(x * options.resolution + rad, y * options.resolution + rad), rad));
-				}
-
 			}
 		}
 	}
@@ -116,6 +106,12 @@ const render = () => {
 
 	if (state != "ready")
 		return;
+
+	if (mousePressed) {
+		if (options.useCursor) {
+			blobs[0].wave(options);
+		}
+	}
 
 	layers.forEach((layer: Layer) => {
 		layer.draw(options);
@@ -134,24 +130,9 @@ const render = () => {
 
 	if (labels) {
 		labels.forEach((label: Label) => {
-			if (options.debug) {
-				label.show();
-				label.draw(layer.inputValues[label.y][label.x].toFixed(1), layer.inputValues[label.y][label.x] > 1 ? true : false);
-			} else {
-				label.hide();
-			}
+			label.draw(layer.inputValues[label.y][label.x].toFixed(1), layer.inputValues[label.y][label.x] > 1 ? true : false);
 		});
 	}
-
-	/*
-	if (dots) {
-		dots.forEach((dot: Dot) => {
-			if (options.debug) {
-				dot.draw(layer.inputValues[dot.y][dot.x].toFixed(1), options);
-			}
-		});
-	}
-	*/
 
 }
 
@@ -197,6 +178,14 @@ const render = () => {
 			blobs[0].pos.x = event.global.x - layersContainer.x;
 			blobs[0].pos.y = event.global.y - layersContainer.y;
 		}
+	});
+
+	app.stage.on('mousedown', function () {
+		mousePressed = true;
+	});
+
+	app.stage.on('mouseup', function () {
+		mousePressed = false;
 	});
 
 

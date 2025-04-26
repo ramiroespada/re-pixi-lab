@@ -26,6 +26,9 @@ export default class Label {
 		this._text.y = pos.y;
 		this._container.addChild(this._text);
 
+		if (this._text.x > this._area.width || this._text.y > this._area.height) {
+			this._text.visible = false;
+		}
 	}
 
 	public hide() {
@@ -47,9 +50,6 @@ export default class Label {
 			this._text.style.fill = color;
 			if (Number(value) > 0.2) {
 				this._text.text = value;
-			}
-			if (this._text.x > this._area.width || this._text.y > this._area.height) {
-				this._text.visible = false;
 			}
 		}
 	}

@@ -1,6 +1,7 @@
 
 import { Container, Graphics, Point, Rectangle } from "pixi.js";
 import Options from "./options";
+import { Ease } from 'pixi-ease';
 
 export default class Blob {
 
@@ -12,6 +13,10 @@ export default class Blob {
 	private _graphics!: Graphics;
 	private _radius!: number;
 	private _velocity!: Point;
+	private _ease: Ease | null = null;
+	private _waveFactor: number = 0;
+
+	private _initRad?: number;
 
 	constructor(container: Container, pos: Point) {
 
@@ -30,6 +35,8 @@ export default class Blob {
 		} else {
 			this._radius = rad;
 		}
+		this._waveFactor = this._radius;
+
 		const r: number = this._radius + this._radius;
 		this.r2 = r * r;
 	}
@@ -40,6 +47,44 @@ export default class Blob {
 		this._velocity.y *= options.blobsSpeedFactor;
 	}
 
+	public wave(options: Options) {
+
+		if (!this._initRad) {
+			this._initRad = this._radius;
+		}
+
+		if (this._ease) {
+			this._ease.destroy();
+		}
+
+		this._ease = new Ease({
+			duration: 200,
+			ease: 'easeOutQuad'
+		});
+
+		let rad = this._radius * 1.2;
+		if (rad >= options.screenWidth / 4 || rad >= options.screenHeight / 4) {
+			rad = this._radius;
+		}
+
+		this._ease.add(this, { _waveFactor: rad }, { repeat: false, reverse: false }).on('each', () => {
+
+			this.setRadius(options, this._waveFactor);
+
+		}).once('complete', () => {
+
+			this._ease = new Ease({
+				duration: 1000,
+				ease: 'easeOutElastic'
+			});
+
+			this._ease.add(this, { _waveFactor: this._initRad }, { repeat: false, reverse: false }).on('each', () => {
+				this.setRadius(options, this._waveFactor);
+			});
+
+		});
+
+	}
 
 	public move(area: Rectangle) {
 
@@ -59,7 +104,7 @@ export default class Blob {
 	public draw(options: Options) {
 		this._graphics.clear();
 		if (options.debug) {
-			//this._graphics.ellipse(this.pos.x, this.pos.y, this._radius * 2, this._radius * 2).stroke({ color: 0xe0eddd, width: options.strokeMinSize });
+			this._graphics.ellipse(this.pos.x, this.pos.y, this._radius * 2, this._radius * 2).fill({ color: 0xe0eddd, width: options.strokeMinSize });
 		}
 	}
 

@@ -62,7 +62,7 @@ export default class Layer {
 	private lineTo(from: Array<number>, to: Array<number>, options: Options) {
 
 		this._graphics.moveTo(from[0], from[1]);
-		const strokeSize = Math.round((options.strokeMaxSize / options.totalLayers) * this._index);
+		const strokeSize = Math.round(((options.strokeMaxSize - options.strokeMinSize) / options.totalLayers) * this._index);
 		this._graphics.lineTo(to[0], to[1]).stroke({ color: this._color, alpha: 1, width: options.strokeMaxSize - strokeSize, join: 'round', cap: 'round' });
 	}
 

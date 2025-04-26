@@ -14,13 +14,13 @@ export default class Options {
 	interpolation: boolean = true;
 	resolution: number = 20;
 	totalLayers: number = 7;
-	totalBlobs: number = 7;
+	totalBlobs: number = 5;
 	blobsMinSize: number = 15;
 	blobsMaxSize: number = 30;
 	blobsSpeedFactor: number = 3;
-	layersDistanceFactor: number = 1.6;
-	strokeMaxSize: number = 8;
-	strokeMinSize: number = 3;
+	layersDistanceFactor: number = 1.4;
+	strokeMaxSize: number = 12;
+	strokeMinSize: number = 2;
 }
 
 
