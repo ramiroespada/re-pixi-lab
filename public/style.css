@@ -20,6 +20,7 @@ body {
   height: 800px;
 }
 
+/*
 :root {
   --tp-base-background-color: hsla(40, 3%, 90%, 1);
   --tp-base-shadow-color: hsla(0, 0%, 0%, 0.3);
@@ -43,10 +44,13 @@ body {
   --tp-monitor-background-color: hsla(120, 3%, 20%, 1);
   --tp-monitor-foreground-color: hsla(120, 40%, 60%, 0.8);
 }
+*/
 
 .tp-dfwv {
-  top: 10px !important;
+  /*
+	top: 10px !important;
   left: 10px !important;
   right: auto !important;
-  width: 300px !important;
+	*/
+  width: 350px !important;
 }

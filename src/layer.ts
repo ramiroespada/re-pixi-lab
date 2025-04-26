@@ -1,9 +1,7 @@
-
-import { Container, Rectangle, Point, Graphics } from "pixi.js";
+import { Container, Rectangle, Graphics } from "pixi.js";
 
 import Blob from "./blob";
 import { binaryToType, lerp } from "./utils";
-import Label from "./label";
 import Options from "./options";
 
 export default class Layer {
@@ -20,21 +18,24 @@ export default class Layer {
 	private _gridValues!: Array<Array<number>>;
 	private _resolution!: number;
 
+	private _color: number = 0x000000;
+
 	public get inputValues(): Array<Array<number>> {
 		return this._inputValues;
 	}
 
-	constructor(container: Container, resolution: number, index: number, area: Rectangle, blobs: Array<Blob>) {
+	constructor(container: Container, resolution: number, index: number, area: Rectangle, blobs: Array<Blob>, color: number) {
 
 		this._resolution = resolution;
 		this._index = index;
-
+		this._color = color;
 		this._container = container;
 		this._wrapper = new Container({ label: "Layer Wrapper" });
 		this._graphics = new Graphics({ label: "Graphics" });
 
 		this._container.addChild(this._wrapper);
 		this._wrapper.addChild(this._graphics);
+
 		this._area = area;
 		this._blobs = blobs;
 
@@ -58,11 +59,11 @@ export default class Layer {
 		}
 	}
 
-	private lineTo(from: Array<number>, to: Array<number>) {
+	private lineTo(from: Array<number>, to: Array<number>, options: Options) {
 
 		this._graphics.moveTo(from[0], from[1]);
-		this._graphics.lineTo(to[0], to[1]).stroke({ color: 0xFF00FF, alpha: 1, width: 2 });
-
+		const strokeSize = Math.round((options.strokeMaxSize / options.totalLayers) * this._index);
+		this._graphics.lineTo(to[0], to[1]).stroke({ color: this._color, alpha: 1, width: options.strokeMaxSize - strokeSize, join: 'round', cap: 'round' });
 	}
 
 	public resize(area: Rectangle) {
@@ -74,7 +75,6 @@ export default class Layer {
 	public draw(options: Options) {
 		if (this._area) {
 
-			// Update Grid Points
 			for (var y = 0; y < this._inputValues.length; y++) {
 				for (var x = 0; x < this._inputValues[y].length; x++) {
 					var addedDistances = 0;
@@ -131,35 +131,35 @@ export default class Layer {
 					switch (this._gridValues[y][x]) {
 						case 1:
 						case 14:
-							this.lineTo(d, c);
+							this.lineTo(d, c, options);
 							break;
 						case 2:
 						case 13:
-							this.lineTo(b, c);
+							this.lineTo(b, c, options);
 							break;
 						case 3:
 						case 12:
-							this.lineTo(d, b);
+							this.lineTo(d, b, options);
 							break;
 						case 11:
 						case 4:
-							this.lineTo(a, b);
+							this.lineTo(a, b, options);
 							break;
 						case 5:
-							this.lineTo(d, a);
-							this.lineTo(c, b);
+							this.lineTo(d, a, options);
+							this.lineTo(c, b, options);
 							break;
 						case 6:
 						case 9:
-							this.lineTo(c, a);
+							this.lineTo(c, a, options);
 							break;
 						case 7:
 						case 8:
-							this.lineTo(d, a);
+							this.lineTo(d, a, options);
 							break;
 						case 10:
-							this.lineTo(a, b);
-							this.lineTo(c, d);
+							this.lineTo(a, b, options);
+							this.lineTo(c, d, options);
 							break;
 						default:
 							break;
@@ -168,7 +168,6 @@ export default class Layer {
 
 				}
 			}
-
 		}
 	}
 

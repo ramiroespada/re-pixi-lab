@@ -24,8 +24,12 @@ export default class Blob {
 		this.pos = new Point(pos.x, pos.y);
 	}
 
-	public setRadius(options: Options) {
-		this._radius = options.blobsMinSize + Math.random() * (options.blobsMaxSize - options.blobsMinSize);
+	public setRadius(options: Options, rad: number = 0) {
+		if (rad == 0) {
+			this._radius = options.blobsMinSize + Math.random() * (options.blobsMaxSize - options.blobsMinSize);
+		} else {
+			this._radius = rad;
+		}
 		const r: number = this._radius + this._radius;
 		this.r2 = r * r;
 	}
@@ -55,7 +59,7 @@ export default class Blob {
 	public draw(options: Options) {
 		this._graphics.clear();
 		if (options.debug) {
-			this._graphics.ellipse(this.pos.x, this.pos.y, this._radius * 2, this._radius * 2).stroke({ color: 0x666666 });
+			//this._graphics.ellipse(this.pos.x, this.pos.y, this._radius * 2, this._radius * 2).stroke({ color: 0xe0eddd, width: options.strokeMinSize });
 		}
 	}
 

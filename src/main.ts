@@ -1,12 +1,17 @@
 import { Pane } from "tweakpane";
-import { Application, sayHello, isWebGLSupported, Container, Rectangle, Ticker, Point, Graphics } from "pixi.js";
+import { Application, sayHello, isWebGLSupported, Container, Rectangle, Ticker, Point, Graphics, BlurFilter } from "pixi.js";
+import { map } from "./utils";
 import Layer from "./layer";
 import Blob from "./blob";
 import Options from "./options";
 import Label from "./label";
+import Dot from "./dot";
+import { ColorSteps } from "./colorSteps";
 
 const app: Application = new Application();
 const appContainer: HTMLElement | null = document.getElementById("pixi-container");
+const debugContainer: Container = new Container({ label: "Debug Container" });
+const dotsContainer: Container = new Container({ label: "Dots Container" });
 const layersContainer: Container = new Container({ label: "Layers Container" });
 const hitter: Graphics = new Graphics({ label: "Hitter" });
 const background: Graphics = new Graphics({ label: "Background" });
@@ -19,6 +24,7 @@ let type: string = "WebGL";
 let layers: Array<Layer> = [];
 let blobs: Array<Blob> = [];
 let labels: Array<Label> = [];
+let dots: Array<Dot> = [];
 
 const resizeHandler = () => {
 
@@ -33,38 +39,41 @@ const resizeHandler = () => {
 		options.screenHeight = options.layerHeight;
 	}
 
-	layersContainer.x = app.screen.width * 0.5 - options.screenWidth * 0.5;
-	layersContainer.y = app.screen.height * 0.5 - options.screenHeight * 0.5;
+	dotsContainer.x = debugContainer.x = layersContainer.x = app.screen.width * 0.5 - options.screenWidth * 0.5;
+	dotsContainer.y = debugContainer.y = layersContainer.y = app.screen.height * 0.5 - options.screenHeight * 0.5;
 
 	hitter.clear();
 	hitter.rect(layersContainer.x, layersContainer.y, options.screenWidth, options.screenHeight).fill({ color: 0x000000, alpha: 1 });
 
 	background.clear();
-	background.rect(layersContainer.x, layersContainer.y, options.screenWidth, options.screenHeight).fill({ color: 0x343434, alpha: 1 });
-
-
+	background.rect(layersContainer.x, layersContainer.y, options.screenWidth, options.screenHeight).fill({ color: 0xfff9e6, alpha: 1 });
 
 	blobs.forEach((blob: Blob) => {
 		blob.destroy();
 	});
 
+	dotsContainer.removeChildren();
+
 	blobs = [];
 	for (let i: number = 0; i < options.totalBlobs; i++) {
-		blobs.push(new Blob(layersContainer, new Point(Math.random() * options.screenWidth, Math.random() * options.screenHeight)));
+		blobs.push(new Blob(dotsContainer, new Point(Math.random() * options.screenWidth, Math.random() * options.screenHeight)));
 	}
 
 	blobs.forEach((blob: Blob) => {
 		blob.setRadius(options);
 		blob.setVelocity(options);
 	});
+	blobs[0].setRadius(options, options.blobsMaxSize);
 
 	layers.forEach((layer: Layer) => {
 		layer.destroy();
 	});
-
 	layers = [];
+	const colors: Array<string> = ColorSteps.getColorSteps("#de710c", "#f7dd87", options.totalLayers);
+	console.log("RE / [main.ts:74]: colors: ", colors);
 	for (let i: number = 0; i < options.totalLayers; i++) {
-		layers.push(new Layer(layersContainer, options.resolution, (i + 1), new Rectangle(0, 0, options.screenWidth, options.screenHeight), blobs));
+		const color = colors[i];
+		layers.push(new Layer(layersContainer, options.resolution, (i + 1), new Rectangle(0, 0, options.screenWidth, options.screenHeight), blobs, color));
 	}
 
 	const layer: Layer = layers[0];
@@ -73,15 +82,30 @@ const resizeHandler = () => {
 		label.destroy();
 	});
 
+	dots.forEach((dot: Dot) => {
+		dot.destroy();
+	});
+
+	const labelFreq: number = Math.round(map(options.resolution, 15, 40, 10, 1, true));
+	const dotFreq: number = Math.round(map(options.resolution, 15, 40, 4, 2, true));
+
 	labels = [];
-	if (options.resolution >= 32 && options.debug) {
+	dots = [];
+	const rad = (options.screenWidth / layer.inputValues.length);
+	if (options.debug) {
 		for (var y = 0; y < layer.inputValues.length; y++) {
 			for (var x = 0; x < layer.inputValues[y].length; x++) {
-				labels.push(new Label(layersContainer, y, x, new Point(x * options.resolution + 4, y * options.resolution + 4), new Rectangle(0, 0, options.screenWidth, options.screenHeight)));
+				if (x % labelFreq == 0 && y % labelFreq == 0) {
+					labels.push(new Label(debugContainer, options, y, x, new Point(x * options.resolution + 4, y * options.resolution + 4), new Rectangle(0, 0, options.screenWidth, options.screenHeight),));
+				}
+
+				if (x % dotFreq == 0 && y % dotFreq == 0) {
+					//dots.push(new Dot(dotsContainer, options, y, x, new Point(x * options.resolution + rad, y * options.resolution + rad), rad));
+				}
+
 			}
 		}
 	}
-
 	state = "ready";
 
 };
@@ -104,10 +128,24 @@ const render = (ticker: Ticker) => {
 		blob.draw(options);
 	});
 
+	const layer: Layer = layers[0] as Layer;
+
 	if (labels) {
-		const layer: Layer = layers[0] as Layer;
 		labels.forEach((label: Label) => {
-			label.draw(layer.inputValues[label.y][label.x].toFixed(1), layer.inputValues[label.y][label.x] > 1 ? true : false);
+			if (options.debug) {
+				label.show();
+				label.draw(layer.inputValues[label.y][label.x].toFixed(1), layer.inputValues[label.y][label.x] > 1 ? true : false);
+			} else {
+				label.hide();
+			}
+		});
+	}
+
+	if (dots) {
+		dots.forEach((dot: Dot) => {
+			if (options.debug) {
+				dot.draw(layer.inputValues[dot.y][dot.x].toFixed(1), layer.inputValues[dot.y][dot.x] > 1 ? true : false, options);
+			}
 		});
 	}
 
@@ -142,10 +180,12 @@ const render = (ticker: Ticker) => {
 	}
 
 	app.stage.addChild(background);
+	app.stage.addChild(dotsContainer);
+	app.stage.addChild(debugContainer);
 	app.stage.addChild(layersContainer);
 	app.stage.addChild(hitter);
 
-	layersContainer.mask = hitter;
+	dotsContainer.mask = debugContainer.mask = layersContainer.mask = hitter;
 
 	app.stage.interactive = true;
 	app.stage.on('mousemove', function (event) {
@@ -179,7 +219,8 @@ const render = (ticker: Ticker) => {
 		readonly: true,
 	});
 
-	tweakpane.addBinding(options, "debug");
+	// tweakpane.addBinding(options, "debug");
+
 	tweakpane.addBinding(options, "fullCanvasSize").on("change", () => {
 		resizeHandler();
 	});;
@@ -187,7 +228,7 @@ const render = (ticker: Ticker) => {
 	tweakpane.addBinding(options, "interpolation");
 
 	tweakpane.addBinding(options, "resolution", {
-		min: 10,
+		min: 15,
 		max: 60,
 		step: 1,
 	}).on("change", (evt) => {
@@ -210,6 +251,7 @@ const render = (ticker: Ticker) => {
 		blobs.forEach((blob: Blob) => {
 			blob.setRadius(options);
 		});
+		blobs[0].setRadius(options, options.blobsMaxSize);
 	});
 
 	tweakpane.addBinding(options, "blobsMaxSize", {
@@ -220,6 +262,8 @@ const render = (ticker: Ticker) => {
 		blobs.forEach((blob: Blob) => {
 			blob.setRadius(options);
 		});
+		blobs[0].setRadius(options, options.blobsMaxSize);
+
 	});
 
 	tweakpane.addBinding(options, "blobsSpeedFactor", {

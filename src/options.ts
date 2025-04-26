@@ -12,13 +12,15 @@ export default class Options {
 	fullCanvasSize: boolean = true;
 	useCursor: boolean = true;
 	interpolation: boolean = true;
-	resolution: number = 44;
+	resolution: number = 20;
 	totalLayers: number = 7;
-	totalBlobs: number = 8;
-	blobsMinSize: number = 20;
+	totalBlobs: number = 7;
+	blobsMinSize: number = 15;
 	blobsMaxSize: number = 30;
 	blobsSpeedFactor: number = 3;
-	layersDistanceFactor: number = 1.25;
+	layersDistanceFactor: number = 1.6;
+	strokeMaxSize: number = 8;
+	strokeMinSize: number = 3;
 }
 
 

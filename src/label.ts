@@ -1,5 +1,6 @@
 
-import { Container, Point, TextStyle, Text, Rectangle } from "pixi.js";
+import { Container, Point, TextStyle, Text, Rectangle, Graphics } from "pixi.js";
+import Options from "./options";
 
 export default class Label {
 
@@ -12,33 +13,44 @@ export default class Label {
 
 	private _area!: Rectangle;
 
-	constructor(container: Container, y: number, x: number, pos: Point, area: Rectangle) {
+	constructor(container: Container, options: Options, y: number, x: number, pos: Point, area: Rectangle) {
 
 		this.x = x;
 		this.y = y;
 		this._area = area;
 		this._container = container;
-		this._style = new TextStyle({ align: "right", fill: 0x999999, fontFamily: 'Arial', fontSize: 10 })
-		this._text = new Text({ text: "0", style: this._style });
 
+		this._style = new TextStyle({ align: "right", fill: 0xffd799, fontFamily: 'Arial', fontSize: 10 })
+		this._text = new Text({ text: "0", style: this._style });
 		this._text.x = pos.x;
 		this._text.y = pos.y;
 		this._container.addChild(this._text);
+
 	}
 
 	public hide() {
-		this._text.visible = false;
+		if (this._text) {
+			this._text.visible = false;
+		}
 	}
 
 	public show() {
-		this._text.visible = true;
+		if (this._text) {
+			this._text.visible = true;
+		}
 	}
 
 	public draw(value: string, selected: boolean) {
-		this._text.style.fill = selected ? 0xFF00FF : Number(value) < 0.3 ? 0x444444 : 0x666666;
-		this._text.text = value;
-		if (this._text.x > this._area.width || this._text.y > this._area.height) {
-			this._text.visible = false;
+
+		const color = selected ? 0x28a5df : Number(value) < 0.2 ? 0xffd799 : 0x9ccd8b;
+		if (this._text) {
+			this._text.style.fill = color;
+			if (Number(value) > 0.2) {
+				this._text.text = value;
+			}
+			if (this._text.x > this._area.width || this._text.y > this._area.height) {
+				this._text.visible = false;
+			}
 		}
 	}
 
