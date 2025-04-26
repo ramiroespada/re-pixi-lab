@@ -18,13 +18,13 @@ export default class Layer {
 	private _gridValues!: Array<Array<number>>;
 	private _resolution!: number;
 
-	private _color: number = 0x000000;
+	private _color: string = '0x000000';
 
 	public get inputValues(): Array<Array<number>> {
 		return this._inputValues;
 	}
 
-	constructor(container: Container, resolution: number, index: number, area: Rectangle, blobs: Array<Blob>, color: number) {
+	constructor(container: Container, resolution: number, index: number, area: Rectangle, blobs: Array<Blob>, color: string) {
 
 		this._resolution = resolution;
 		this._index = index;
