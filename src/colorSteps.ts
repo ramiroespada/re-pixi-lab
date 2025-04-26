@@ -7,18 +7,17 @@ export const ColorSteps = (() => {
 	 * @returns {array} [r,g,b,a] array. Caution: returns [0,0,0,0] for invalid color.
 	 * @see https://gist.github.com/av01d/8f068dd43447b475dec4aad0a6107288
 	 */
-	//@ts-ignore
-	const colorValues = (color) => {
+	const colorValues = (color: string) => {
 		const div = document.createElement("div");
 		div.style.backgroundColor = color;
 		document.body.appendChild(div);
-		let rgba = getComputedStyle(div).getPropertyValue("background-color");
+		let rgba: string = getComputedStyle(div).getPropertyValue("background-color");
 		div.remove();
 
 		if (rgba.indexOf("rgba") === -1) {
 			rgba += ",1"; // convert 'rgb(R,G,B)' to 'rgb(R,G,B)A' which looks awful but will pass the regxep below
 		}
-		//@ts-expect-error
+		/* eslint-disable-next-line */ //@ts-expect-error Let this without type
 		return rgba.match(/[\.\d]+/g).map((a) => {
 			return +a;
 		});
@@ -32,8 +31,8 @@ export const ColorSteps = (() => {
 	 * @param {int} steps Number of color steps to return
 	 * @returns {array} Array of 'rgb(r,g,b)' or 'rgba(r,g,b,a)' arrays
 	 */
-	//@ts-ignore
-	const getColorSteps = (colorStart, colorEnd, steps) => {
+
+	const getColorSteps = (colorStart: string, colorEnd: string, steps: number) => {
 		const start = colorValues(colorStart),
 			end = colorValues(colorEnd),
 			opacityStep = (end[3] * 100 - start[3] * 100) / steps,
@@ -45,7 +44,7 @@ export const ColorSteps = (() => {
 			alpha += 1.0 / steps;
 			opacity += opacityStep;
 
-			let c = [
+			const c = [
 				Math.round(end[0] * alpha + (1 - alpha) * start[0]),
 				Math.round(end[1] * alpha + (1 - alpha) * start[1]),
 				Math.round(end[2] * alpha + (1 - alpha) * start[2]),

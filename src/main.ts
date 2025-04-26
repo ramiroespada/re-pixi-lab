@@ -5,7 +5,7 @@ import Layer from "./layer";
 import Blob from "./blob";
 import Options from "./options";
 import Label from "./label";
-import Dot from "./dot";
+
 import { ColorSteps } from "./colorSteps";
 
 const app: Application = new Application();
@@ -82,9 +82,11 @@ const resizeHandler = () => {
 		label.destroy();
 	});
 
+	/*
 	dots.forEach((dot: Dot) => {
 		dot.destroy();
 	});
+	*/
 
 	const labelFreq: number = Math.round(map(options.resolution, 15, 40, 10, 1, true));
 	const dotFreq: number = Math.round(map(options.resolution, 15, 40, 4, 2, true));
@@ -141,6 +143,7 @@ const render = () => {
 		});
 	}
 
+	/*
 	if (dots) {
 		dots.forEach((dot: Dot) => {
 			if (options.debug) {
@@ -148,12 +151,13 @@ const render = () => {
 			}
 		});
 	}
+	*/
 
 }
 
 (async () => {
 
-	//@ts-ignore
+	//@ts-expect-error No need to use unknown type
 	globalThis.__PIXI_APP__ = app;
 	//
 
