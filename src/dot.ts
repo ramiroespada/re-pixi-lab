@@ -1,5 +1,5 @@
 
-import { Container, Point, Rectangle, Graphics } from "pixi.js";
+import { Container, Point, Graphics } from "pixi.js";
 import Options from "./options";
 import { map } from "./utils";
 import { Ease } from 'pixi-ease';
@@ -38,7 +38,7 @@ export default class Dot {
 
 
 
-	public draw(value: string, selected: boolean, options: Options) {
+	public draw(value: string) {
 
 		const color = 0xe0eddd;
 

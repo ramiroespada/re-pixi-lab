@@ -1,5 +1,5 @@
 
-import { Container, Point, TextStyle, Text, Rectangle, Graphics } from "pixi.js";
+import { Container, Point, TextStyle, Text, Rectangle } from "pixi.js";
 import Options from "./options";
 
 export default class Label {

@@ -18,7 +18,7 @@ export const ColorSteps = (() => {
 		if (rgba.indexOf("rgba") === -1) {
 			rgba += ",1"; // convert 'rgb(R,G,B)' to 'rgb(R,G,B)A' which looks awful but will pass the regxep below
 		}
-		//@ts-ignore
+		//@ts-expect-error
 		return rgba.match(/[\.\d]+/g).map((a) => {
 			return +a;
 		});

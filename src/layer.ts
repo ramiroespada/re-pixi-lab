@@ -75,11 +75,11 @@ export default class Layer {
 	public draw(options: Options) {
 		if (this._area) {
 
-			for (var y = 0; y < this._inputValues.length; y++) {
-				for (var x = 0; x < this._inputValues[y].length; x++) {
-					var addedDistances = 0;
-					var rx = x * this._resolution;
-					var ry = y * this._resolution;
+			for (let y = 0; y < this._inputValues.length; y++) {
+				for (let x = 0; x < this._inputValues[y].length; x++) {
+					let addedDistances = 0;
+					const rx = x * this._resolution;
+					const ry = y * this._resolution;
 					this._blobs.forEach((blob: Blob) => {
 						addedDistances +=
 							(blob.r2 * (this._index * options.layersDistanceFactor)) / ((blob.pos.y - ry) ** 2 + (blob.pos.x - rx) ** 2);
@@ -88,8 +88,8 @@ export default class Layer {
 				}
 			}
 
-			for (var y = 0; y < this._gridValues.length; y++) {
-				for (var x = 0; x < this._gridValues[y].length; x++) {
+			for (let y = 0; y < this._gridValues.length; y++) {
+				for (let x = 0; x < this._gridValues[y].length; x++) {
 					this._gridValues[y][x] = binaryToType(
 						this._inputValues[y][x] > 1,
 						this._inputValues[y][x + 1] > 1,
@@ -102,8 +102,8 @@ export default class Layer {
 			// Draw Lines
 			this._graphics.clear();
 
-			for (var y = 0; y < this._gridValues.length; y++) {
-				for (var x = 0; x < this._gridValues[y].length; x++) {
+			for (let y = 0; y < this._gridValues.length; y++) {
+				for (let x = 0; x < this._gridValues[y].length; x++) {
 
 					let a: Array<number> = [x * this._resolution + this._resolution / 2, y * this._resolution];
 					let b: Array<number> = [x * this._resolution + this._resolution, y * this._resolution + this._resolution / 2];

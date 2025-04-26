@@ -27,7 +27,7 @@ export function dist(p1X: number, p1Y: number, p2X: number, p2Y: number) {
 	return Math.round(Math.sqrt(p1a * p1a + p2a * p2a));
 }
 
-//@ts-ignore
+//@ts-expect-error
 export function onlyUnique(value, index, array) {
 	return array.indexOf(value) === index;
 }
@@ -36,11 +36,11 @@ export function screenLockPortrait() {
 	try {
 		const screenOrientation = window.screen.orientation;
 		if (screenOrientation) {
-			//@ts-ignore
+			//@ts-expect-error
 			screenOrientation.lock("portrait");
 		}
 	} catch (error) {
-		console.log("Cannot lock screen orientation");
+		console.log("Cannot lock screen orientation: ", error);
 	}
 }
 
@@ -55,7 +55,7 @@ export function openFullscreen(elem) {
 }
 
 /* Close fullscreen */
-//@ts-ignore
+//@ts-expect-error
 export function closeFullscreen(document) {
 	if (document.exitFullscreen) {
 		document.exitFullscreen();
@@ -73,10 +73,10 @@ export function lerp(x: number, x0: number, x1: number, y0: number = 0, y1: numb
 	return y0 + ((y1 - y0) * (x - x0)) / (x1 - x0);
 }
 
-//@ts-ignore
+//@ts-expect-error
 export function binaryToType(nw, ne, se, sw) {
-	//@ts-ignore
+	//@ts-expect-error
 	let a: Array = [nw, ne, se, sw];
-	//@ts-ignore
+	//@ts-expect-error
 	return a.reduce((res, x) => (res << 1) | x);
 }

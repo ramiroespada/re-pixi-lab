@@ -1,5 +1,5 @@
 import { Pane } from "tweakpane";
-import { Application, sayHello, isWebGLSupported, Container, Rectangle, Ticker, Point, Graphics, BlurFilter } from "pixi.js";
+import { Application, sayHello, isWebGLSupported, Container, Rectangle, Point, Graphics } from "pixi.js";
 import { map } from "./utils";
 import Layer from "./layer";
 import Blob from "./blob";
@@ -24,7 +24,7 @@ let type: string = "WebGL";
 let layers: Array<Layer> = [];
 let blobs: Array<Blob> = [];
 let labels: Array<Label> = [];
-let dots: Array<Dot> = [];
+//let dots: Array<Dot> = [];
 
 const resizeHandler = () => {
 
@@ -90,11 +90,10 @@ const resizeHandler = () => {
 	const dotFreq: number = Math.round(map(options.resolution, 15, 40, 4, 2, true));
 
 	labels = [];
-	dots = [];
-	const rad = (options.screenWidth / layer.inputValues.length);
+
 	if (options.debug) {
-		for (var y = 0; y < layer.inputValues.length; y++) {
-			for (var x = 0; x < layer.inputValues[y].length; x++) {
+		for (let y = 0; y < layer.inputValues.length; y++) {
+			for (let x = 0; x < layer.inputValues[y].length; x++) {
 				if (x % labelFreq == 0 && y % labelFreq == 0) {
 					labels.push(new Label(debugContainer, options, y, x, new Point(x * options.resolution + 4, y * options.resolution + 4), new Rectangle(0, 0, options.screenWidth, options.screenHeight),));
 				}
@@ -110,7 +109,7 @@ const resizeHandler = () => {
 
 };
 
-const render = (ticker: Ticker) => {
+const render = () => {
 	options.FPS = app.ticker.FPS;
 
 	if (state != "ready")
@@ -122,6 +121,7 @@ const render = (ticker: Ticker) => {
 
 	blobs.forEach((blob: Blob, i) => {
 		if (options.useCursor && i == 0) {
+			// TODO
 		} else {
 			blob.move(new Rectangle(0, 0, options.screenWidth, options.screenHeight));
 		}
@@ -144,7 +144,7 @@ const render = (ticker: Ticker) => {
 	if (dots) {
 		dots.forEach((dot: Dot) => {
 			if (options.debug) {
-				dot.draw(layer.inputValues[dot.y][dot.x].toFixed(1), layer.inputValues[dot.y][dot.x] > 1 ? true : false, options);
+				dot.draw(layer.inputValues[dot.y][dot.x].toFixed(1), options);
 			}
 		});
 	}
@@ -198,8 +198,8 @@ const render = (ticker: Ticker) => {
 
 	resizeHandler();
 
-	app.ticker.add((ticker) => {
-		render(ticker);
+	app.ticker.add(() => {
+		render();
 	});
 
 	tweakpane = new Pane({
@@ -231,7 +231,7 @@ const render = (ticker: Ticker) => {
 		min: 15,
 		max: 60,
 		step: 1,
-	}).on("change", (evt) => {
+	}).on("change", () => {
 		resizeHandler();
 	});
 
@@ -239,7 +239,7 @@ const render = (ticker: Ticker) => {
 		min: 2,
 		max: 20,
 		step: 1,
-	}).on("change", (evt) => {
+	}).on("change", () => {
 		resizeHandler();
 	});
 
@@ -247,7 +247,7 @@ const render = (ticker: Ticker) => {
 		min: 5,
 		max: 20,
 		step: 1,
-	}).on("change", (evt) => {
+	}).on("change", () => {
 		blobs.forEach((blob: Blob) => {
 			blob.setRadius(options);
 		});
@@ -258,7 +258,7 @@ const render = (ticker: Ticker) => {
 		min: 0,
 		max: 100,
 		step: 1,
-	}).on("change", (evt) => {
+	}).on("change", () => {
 		blobs.forEach((blob: Blob) => {
 			blob.setRadius(options);
 		});
@@ -270,7 +270,7 @@ const render = (ticker: Ticker) => {
 		min: 1,
 		max: 10,
 		step: 1,
-	}).on("change", (evt) => {
+	}).on("change", () => {
 		blobs.forEach((blob: Blob) => {
 			blob.setVelocity(options);
 		});
@@ -280,7 +280,7 @@ const render = (ticker: Ticker) => {
 		min: 1,
 		max: 20,
 		step: 1,
-	}).on("change", (evt) => {
+	}).on("change", () => {
 		resizeHandler();
 	});
 
