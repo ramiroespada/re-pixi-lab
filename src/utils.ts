@@ -44,6 +44,7 @@ export function screenLockPortrait() {
 	}
 }
 
+/* eslint-disable-next-line */ //@ts-expect-error Let this without type
 export function openFullscreen(elem) {
 	if (elem.requestFullscreen) {
 		elem.requestFullscreen();

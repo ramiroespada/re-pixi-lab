@@ -73,7 +73,7 @@ const resizeHandler = () => {
 	console.log("RE / [main.ts:74]: colors: ", colors);
 	for (let i: number = 0; i < options.totalLayers; i++) {
 		const color = colors[i];
-		layers.push(new Layer(layersContainer, options.resolution, (i + 1), new Rectangle(0, 0, options.screenWidth, options.screenHeight), blobs, color));
+		layers.push(new Layer(layersContainer, options.resolution, (i + 1), new Rectangle(0, 0, options.screenWidth, options.screenHeight), blobs, Number(color)));
 	}
 
 	const layer: Layer = layers[0];
