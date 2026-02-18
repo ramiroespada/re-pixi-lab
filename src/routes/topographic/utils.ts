@@ -8,7 +8,7 @@ export function map(
 	stop1: number,
 	start2: number,
 	stop2: number,
-	withinBounds?: boolean
+	withinBounds?: boolean,
 ): number {
 	const newval = ((n - start1) / (stop1 - start1)) * (stop2 - start2) + start2;
 	if (!withinBounds) {
@@ -48,9 +48,11 @@ export function screenLockPortrait() {
 export function openFullscreen(elem) {
 	if (elem.requestFullscreen) {
 		elem.requestFullscreen();
-	} else if (elem.webkitRequestFullscreen) { /* Safari */
+	} else if (elem.webkitRequestFullscreen) {
+		/* Safari */
 		elem.webkitRequestFullscreen();
-	} else if (elem.msRequestFullscreen) { /* IE11 */
+	} else if (elem.msRequestFullscreen) {
+		/* IE11 */
 		elem.msRequestFullscreen();
 	}
 }
@@ -60,14 +62,22 @@ export function openFullscreen(elem) {
 export function closeFullscreen(document) {
 	if (document.exitFullscreen) {
 		document.exitFullscreen();
-	} else if (document.webkitExitFullscreen) { /* Safari */
+	} else if (document.webkitExitFullscreen) {
+		/* Safari */
 		document.webkitExitFullscreen();
-	} else if (document.msExitFullscreen) { /* IE11 */
+	} else if (document.msExitFullscreen) {
+		/* IE11 */
 		document.msExitFullscreen();
 	}
 }
 
-export function lerp(x: number, x0: number, x1: number, y0: number = 0, y1: number = 1): number {
+export function lerp(
+	x: number,
+	x0: number,
+	x1: number,
+	y0: number = 0,
+	y1: number = 1,
+): number {
 	if (x0 === x1) {
 		return 0;
 	}

@@ -2,10 +2,9 @@ import { Container, Rectangle, Graphics } from "pixi.js";
 
 import Blob from "./blob";
 import { binaryToType, lerp } from "./utils";
-import Options from "./options";
+import type { Options } from "./options";
 
 export default class Layer {
-
 	private _index: number = 1;
 	private _container!: Container;
 	private _wrapper!: Container;
@@ -18,14 +17,20 @@ export default class Layer {
 	private _gridValues!: Array<Array<number>>;
 	private _resolution!: number;
 
-	private _color: string = '0x000000';
+	private _color: string = "0x000000";
 
 	public get inputValues(): Array<Array<number>> {
 		return this._inputValues;
 	}
 
-	constructor(container: Container, resolution: number, index: number, area: Rectangle, blobs: Array<Blob>, color: string) {
-
+	constructor(
+		container: Container,
+		resolution: number,
+		index: number,
+		area: Rectangle,
+		blobs: Array<Blob>,
+		color: string,
+	) {
 		this._resolution = resolution;
 		this._index = index;
 		this._color = color;
@@ -40,13 +45,16 @@ export default class Layer {
 		this._blobs = blobs;
 
 		this.resize(area);
-
 	}
 
 	private startMap() {
 		this._inputValues = [];
-		const totalInputValuesHeight: number = Math.ceil(1 + this._area.height / this._resolution);
-		const totalInputValuesWidth: number = Math.ceil(1 + this._area.width / this._resolution);
+		const totalInputValuesHeight: number = Math.ceil(
+			1 + this._area.height / this._resolution,
+		);
+		const totalInputValuesWidth: number = Math.ceil(
+			1 + this._area.width / this._resolution,
+		);
 
 		for (let i: number = 0; i < totalInputValuesHeight; i++) {
 			this._inputValues.push(new Array(totalInputValuesWidth));
@@ -60,10 +68,18 @@ export default class Layer {
 	}
 
 	private lineTo(from: Array<number>, to: Array<number>, options: Options) {
-
 		this._graphics.moveTo(from[0], from[1]);
-		const strokeSize = Math.round(((options.strokeMaxSize - options.strokeMinSize) / options.totalLayers) * this._index);
-		this._graphics.lineTo(to[0], to[1]).stroke({ color: this._color, alpha: 1, width: options.strokeMaxSize - strokeSize, join: 'round', cap: 'round' });
+		const strokeSize = Math.round(
+			((options.strokeMaxSize - options.strokeMinSize) / options.totalLayers) *
+				this._index,
+		);
+		this._graphics.lineTo(to[0], to[1]).stroke({
+			color: this._color,
+			alpha: 1,
+			width: options.strokeMaxSize - strokeSize,
+			join: "round",
+			cap: "round",
+		});
 	}
 
 	public resize(area: Rectangle) {
@@ -71,10 +87,8 @@ export default class Layer {
 		this.startMap();
 	}
 
-
 	public draw(options: Options) {
 		if (this._area) {
-
 			for (let y = 0; y < this._inputValues.length; y++) {
 				for (let x = 0; x < this._inputValues[y].length; x++) {
 					let addedDistances = 0;
@@ -82,7 +96,8 @@ export default class Layer {
 					const ry = y * this._resolution;
 					this._blobs.forEach((blob: Blob) => {
 						addedDistances +=
-							(blob.r2 * (this._index * options.layersDistanceFactor)) / ((blob.pos.y - ry) ** 2 + (blob.pos.x - rx) ** 2);
+							(blob.r2 * (this._index * options.layersDistanceFactor)) /
+							((blob.pos.y - ry) ** 2 + (blob.pos.x - rx) ** 2);
 					});
 					this._inputValues[y][x] = addedDistances;
 				}
@@ -94,7 +109,7 @@ export default class Layer {
 						this._inputValues[y][x] > 1,
 						this._inputValues[y][x + 1] > 1,
 						this._inputValues[y + 1][x + 1] > 1,
-						this._inputValues[y + 1][x] > 1
+						this._inputValues[y + 1][x] > 1,
 					);
 				}
 			}
@@ -104,18 +119,32 @@ export default class Layer {
 
 			for (let y = 0; y < this._gridValues.length; y++) {
 				for (let x = 0; x < this._gridValues[y].length; x++) {
-
-					let a: Array<number> = [x * this._resolution + this._resolution / 2, y * this._resolution];
-					let b: Array<number> = [x * this._resolution + this._resolution, y * this._resolution + this._resolution / 2];
-					let c: Array<number> = [x * this._resolution + this._resolution / 2, y * this._resolution + this._resolution];
-					let d: Array<number> = [x * this._resolution, y * this._resolution + this._resolution / 2];
+					let a: Array<number> = [
+						x * this._resolution + this._resolution / 2,
+						y * this._resolution,
+					];
+					let b: Array<number> = [
+						x * this._resolution + this._resolution,
+						y * this._resolution + this._resolution / 2,
+					];
+					let c: Array<number> = [
+						x * this._resolution + this._resolution / 2,
+						y * this._resolution + this._resolution,
+					];
+					let d: Array<number> = [
+						x * this._resolution,
+						y * this._resolution + this._resolution / 2,
+					];
 
 					if (options.interpolation) {
 						const nw: number = this._inputValues[y][x];
 						const ne: number = this._inputValues[y][x + 1];
 						const se: number = this._inputValues[y + 1][x + 1];
 						const sw: number = this._inputValues[y + 1][x];
-						a = [x * this._resolution + this._resolution * lerp(1, nw, ne), y * this._resolution];
+						a = [
+							x * this._resolution + this._resolution * lerp(1, nw, ne),
+							y * this._resolution,
+						];
 						b = [
 							x * this._resolution + this._resolution,
 							y * this._resolution + this._resolution * lerp(1, ne, se),
@@ -124,9 +153,11 @@ export default class Layer {
 							x * this._resolution + this._resolution * lerp(1, sw, se),
 							y * this._resolution + this._resolution,
 						];
-						d = [x * this._resolution, y * this._resolution + this._resolution * lerp(1, nw, sw)];
+						d = [
+							x * this._resolution,
+							y * this._resolution + this._resolution * lerp(1, nw, sw),
+						];
 					}
-
 
 					switch (this._gridValues[y][x]) {
 						case 1:
@@ -164,8 +195,6 @@ export default class Layer {
 						default:
 							break;
 					}
-
-
 				}
 			}
 		}
@@ -177,7 +206,3 @@ export default class Layer {
 		this._gridValues = [];
 	}
 }
-
-
-
-
