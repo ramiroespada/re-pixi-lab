@@ -1,4 +1,13 @@
-<h1>LAB</h1>
-<p>
+<div class="lab">
 	<a href="./topographic">Topographic</a>
-</p>
+</div>
+
+<svelte:head>
+	<title>LAB</title>
+</svelte:head>
+
+<style>
+	.lab {
+		padding: 20px;
+	}
+</style>

@@ -388,6 +388,10 @@
 	});
 </script>
 
+<svelte:head>
+	<title>Topographic</title>
+</svelte:head>
+
 <div id="app">
 	<div id="pixi-container"></div>
 </div>
