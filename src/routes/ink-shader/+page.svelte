@@ -31,6 +31,7 @@
 	let image: Sprite;
 	let thumbnail: Sprite;
 	let texture: Texture;
+	let blueNoise: Texture;
 	let appContainer: HTMLElement | null = null;
 	let paneContainer: HTMLElement | null = null;
 	let type: string = "WebGL";
@@ -60,6 +61,8 @@
 		hatchLimit: 1.3,
 		smoothness: 0,
 		blur: 0,
+		renderMode: 0.0,
+		jitter: 0.0,
 	};
 
 	const setImagePositionFromNormalized = (nx: number, ny: number) => {
@@ -168,6 +171,14 @@
 			texture.source.update();
 		}
 
+		if (!blueNoise) {
+			blueNoise = await Assets.load({
+				src: "/BlueNoise64Tiled.png",
+			});
+			blueNoise.source.style.addressMode = "repeat";
+			blueNoise.source.style.scaleMode = "nearest";
+		}
+
 		thumbnail.texture = texture;
 		image.texture = texture;
 
@@ -178,11 +189,15 @@
 			}),
 			resources: {
 				customUniforms: {
-					uContour: { value: 1.0, type: "f32" },
-					uSpacing: { value: 10.0, type: "f32" },
-					uHatchLimit: { value: 1.2, type: "f32" },
-					uSmoothness: { value: 0.25, type: "f32" },
+					uContour: { value: config.contour, type: "f32" },
+					uSpacing: { value: config.spacing, type: "f32" },
+					uHatchLimit: { value: config.hatchLimit, type: "f32" },
+					uSmoothness: { value: config.smoothness, type: "f32" },
+					uRenderMode: { value: config.renderMode, type: "f32" },
+					uJitter: { value: config.jitter, type: "f32" },
+					uBlueNoiseSize: { value: 64.0, type: "f32" }, // texture width/height
 				},
+				uBlueNoise: blueNoise.source, // key must match the sampler2D name in GLSL
 			},
 			resolution: window.devicePixelRatio || 1,
 		});
@@ -326,8 +341,8 @@
 		folderAdjustment
 			.addBinding(adjustmentFilter, "gamma", {
 				min: 0,
-				max: 5,
-				step: 0.1,
+				max: 2,
+				step: 0.01,
 			})
 			.on("change", () => {
 				updateFilers();
@@ -356,8 +371,8 @@
 		folderAdjustment
 			.addBinding(adjustmentFilter, "brightness", {
 				min: 0,
-				max: 5,
-				step: 0.1,
+				max: 2,
+				step: 0.05,
 			})
 			.on("change", () => {
 				updateFilers();
@@ -412,6 +427,16 @@
 				min: 0,
 				max: 22,
 				step: 1,
+			})
+			.on("change", () => {
+				updateFilers();
+			});
+
+		folder
+			.addBinding(config, "jitter", {
+				min: 0,
+				max: 5,
+				step: 0.01,
 			})
 			.on("change", () => {
 				updateFilers();

@@ -12,4 +12,6 @@ export type Config = {
 	hatchLimit: number;
 	smoothness: number;
 	blur: number;
+	renderMode: number;
+	jitter: number;
 };
