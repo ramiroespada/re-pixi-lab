@@ -2,7 +2,7 @@ import { Container, Rectangle, Graphics } from "pixi.js";
 
 import Blob from "./blob";
 import { binaryToType, lerp } from "./utils";
-import type { Options } from "./options";
+import type { Config } from "./config";
 
 export default class Layer {
 	private _index: number = 1;
@@ -67,16 +67,16 @@ export default class Layer {
 		}
 	}
 
-	private lineTo(from: Array<number>, to: Array<number>, options: Options) {
+	private lineTo(from: Array<number>, to: Array<number>, config: Config) {
 		this._graphics.moveTo(from[0], from[1]);
 		const strokeSize = Math.round(
-			((options.strokeMaxSize - options.strokeMinSize) / options.totalLayers) *
+			((config.strokeMaxSize - config.strokeMinSize) / config.layers) *
 				this._index,
 		);
 		this._graphics.lineTo(to[0], to[1]).stroke({
 			color: this._color,
 			alpha: 1,
-			width: options.strokeMaxSize - strokeSize,
+			width: config.strokeMaxSize - strokeSize,
 			join: "round",
 			cap: "round",
 		});
@@ -87,7 +87,7 @@ export default class Layer {
 		this.startMap();
 	}
 
-	public draw(options: Options) {
+	public draw(config: Config) {
 		if (this._area) {
 			for (let y = 0; y < this._inputValues.length; y++) {
 				for (let x = 0; x < this._inputValues[y].length; x++) {
@@ -96,7 +96,7 @@ export default class Layer {
 					const ry = y * this._resolution;
 					this._blobs.forEach((blob: Blob) => {
 						addedDistances +=
-							(blob.r2 * (this._index * options.layersDistanceFactor)) /
+							(blob.r2 * (this._index * config.distance)) /
 							((blob.pos.y - ry) ** 2 + (blob.pos.x - rx) ** 2);
 					});
 					this._inputValues[y][x] = addedDistances;
@@ -136,7 +136,7 @@ export default class Layer {
 						y * this._resolution + this._resolution / 2,
 					];
 
-					if (options.interpolation) {
+					if (config.interpolation) {
 						const nw: number = this._inputValues[y][x];
 						const ne: number = this._inputValues[y][x + 1];
 						const se: number = this._inputValues[y + 1][x + 1];
@@ -162,35 +162,35 @@ export default class Layer {
 					switch (this._gridValues[y][x]) {
 						case 1:
 						case 14:
-							this.lineTo(d, c, options);
+							this.lineTo(d, c, config);
 							break;
 						case 2:
 						case 13:
-							this.lineTo(b, c, options);
+							this.lineTo(b, c, config);
 							break;
 						case 3:
 						case 12:
-							this.lineTo(d, b, options);
+							this.lineTo(d, b, config);
 							break;
 						case 11:
 						case 4:
-							this.lineTo(a, b, options);
+							this.lineTo(a, b, config);
 							break;
 						case 5:
-							this.lineTo(d, a, options);
-							this.lineTo(c, b, options);
+							this.lineTo(d, a, config);
+							this.lineTo(c, b, config);
 							break;
 						case 6:
 						case 9:
-							this.lineTo(c, a, options);
+							this.lineTo(c, a, config);
 							break;
 						case 7:
 						case 8:
-							this.lineTo(d, a, options);
+							this.lineTo(d, a, config);
 							break;
 						case 10:
-							this.lineTo(a, b, options);
-							this.lineTo(c, d, options);
+							this.lineTo(a, b, config);
+							this.lineTo(c, d, config);
 							break;
 						default:
 							break;

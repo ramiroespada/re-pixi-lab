@@ -1,5 +1,5 @@
 import { Container, Graphics, Point, Rectangle } from "pixi.js";
-import type { Options } from "./options";
+import type { Config } from "./config";
 //import { Ease } from "pixi-ease";
 
 export default class Blob {
@@ -26,11 +26,11 @@ export default class Blob {
 		this.pos = new Point(pos.x, pos.y);
 	}
 
-	public setRadius(options: Options, rad: number = 0) {
+	public setRadius(config: Config, rad: number = 0) {
 		if (rad == 0) {
 			this._radius =
-				options.blobsMinSize +
-				Math.random() * (options.blobsMaxSize - options.blobsMinSize);
+				config.blobsMinSize +
+				Math.random() * (config.blobsMaxSize - config.blobsMinSize);
 		} else {
 			this._radius = rad;
 		}
@@ -40,13 +40,13 @@ export default class Blob {
 		this.r2 = r * r;
 	}
 
-	public setVelocity(options: Options) {
+	public setVelocity(config: Config) {
 		this._velocity = new Point(1 - Math.random() * 2, 1 - Math.random() * 2);
-		this._velocity.x *= options.blobsSpeedFactor;
-		this._velocity.y *= options.blobsSpeedFactor;
+		this._velocity.x *= config.blobsSpeed;
+		this._velocity.y *= config.blobsSpeed;
 	}
 
-	public wave(options: Options) {
+	public wave(config: Config) {
 		if (!this._initRad) {
 			this._initRad = this._radius;
 		}
@@ -64,7 +64,7 @@ export default class Blob {
 		*/
 
 		let rad = this._radius * 1.2;
-		if (rad >= options.screenWidth / 4 || rad >= options.screenHeight / 4) {
+		if (rad >= config.screenWidth / 4 || rad >= config.screenHeight / 4) {
 			rad = this._radius;
 		}
 
@@ -106,12 +106,12 @@ export default class Blob {
 		this.pos.y += this._velocity.y;
 	}
 
-	public draw(options: Options) {
+	public draw(config: Config) {
 		this._graphics.clear();
-		if (options.debug) {
+		if (config.debug) {
 			this._graphics
 				.ellipse(this.pos.x, this.pos.y, this._radius * 2, this._radius * 2)
-				.fill({ color: 0xe0eddd, width: options.strokeMinSize });
+				.fill({ color: 0xe0eddd, width: config.strokeMinSize });
 		}
 	}
 

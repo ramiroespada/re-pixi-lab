@@ -1,22 +1,21 @@
-export type Options = {
+export type Config = {
 	FPS: number;
 	screenWidth: number;
 	screenHeight: number;
-	tweaksExpanded: boolean;
 	maxFPS: number;
 	layerWidth: number;
 	layerHeight: number;
 	debug: boolean;
-	fullCanvasSize: boolean;
+	fullCanvas: boolean;
 	useCursor: boolean;
 	interpolation: boolean;
 	resolution: number;
-	totalLayers: number;
-	totalBlobs: number;
+	layers: number;
+	blobs: number;
 	blobsMinSize: number;
 	blobsMaxSize: number;
-	blobsSpeedFactor: number;
-	layersDistanceFactor: number;
+	blobsSpeed: number;
+	distance: number;
 	strokeMaxSize: number;
 	strokeMinSize: number;
 };

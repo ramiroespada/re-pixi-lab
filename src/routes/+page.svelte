@@ -1,5 +1,7 @@
 <div class="lab">
-	<a href="./topographic">Topographic</a>
+	<p><a href="./topographic">Topographic</a></p>
+	<p><a href="./sobel-shader">Sobel Shader</a></p>
+	<p><a href="./ink-shader">Ink Shader</a></p>
 </div>
 
 <svelte:head>
@@ -8,6 +10,6 @@
 
 <style>
 	.lab {
-		padding: 20px;
+		padding: 40px;
 	}
 </style>

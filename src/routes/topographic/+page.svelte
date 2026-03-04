@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from "svelte";
-	import { Pane } from "tweakpane";
+	import { Pane, FolderApi } from "tweakpane";
+
 	import {
 		Application,
 		sayHello,
@@ -15,7 +16,7 @@
 	import Blob from "./blob";
 	import Label from "./label";
 	import { ColorSteps } from "./colorSteps";
-	import type { Options } from "./options";
+	import type { Config } from "./config";
 
 	const app: Application = new Application();
 	const debugContainer: Container = new Container({ label: "Debug Container" });
@@ -26,26 +27,25 @@
 	const hitter: Graphics = new Graphics({ label: "Hitter" });
 	const background: Graphics = new Graphics({ label: "Background" });
 
-	const options: Options = {
+	const config: Config = {
 		FPS: 0,
 		screenWidth: 0,
 		screenHeight: 0,
-		tweaksExpanded: true,
 		maxFPS: 60,
 		layerWidth: 800,
 		layerHeight: 800,
 		debug: false,
-		fullCanvasSize: true,
+		fullCanvas: true,
 		useCursor: true,
 		interpolation: true,
 		resolution: 10,
-		totalLayers: 7,
-		totalBlobs: 5,
+		layers: 7,
+		blobs: 3,
 		blobsMinSize: 15,
 		blobsMaxSize: 30,
-		blobsSpeedFactor: 3,
-		layersDistanceFactor: 1.4,
-		strokeMaxSize: 12,
+		blobsSpeed: 3,
+		distance: 1.4,
+		strokeMaxSize: 10,
 		strokeMinSize: 2,
 	};
 
@@ -65,30 +65,30 @@
 			Math.floor(window.innerHeight / 2) * 2,
 		);
 
-		if (options.fullCanvasSize) {
-			options.screenWidth = app.screen.width;
-			options.screenHeight = app.screen.height;
+		if (config.fullCanvas) {
+			config.screenWidth = app.screen.width;
+			config.screenHeight = app.screen.height;
 		} else {
-			options.screenWidth = options.layerWidth;
-			options.screenHeight = options.layerHeight;
+			config.screenWidth = config.layerWidth;
+			config.screenHeight = config.layerHeight;
 		}
 
 		dotsContainer.x =
 			debugContainer.x =
 			layersContainer.x =
-				app.screen.width * 0.5 - options.screenWidth * 0.5;
+				app.screen.width * 0.5 - config.screenWidth * 0.5;
 		dotsContainer.y =
 			debugContainer.y =
 			layersContainer.y =
-				app.screen.height * 0.5 - options.screenHeight * 0.5;
+				app.screen.height * 0.5 - config.screenHeight * 0.5;
 
 		hitter.clear();
 		hitter
 			.rect(
 				layersContainer.x,
 				layersContainer.y,
-				options.screenWidth,
-				options.screenHeight,
+				config.screenWidth,
+				config.screenHeight,
 			)
 			.fill({ color: 0x000000, alpha: 1 });
 
@@ -97,8 +97,8 @@
 			.rect(
 				layersContainer.x,
 				layersContainer.y,
-				options.screenWidth,
-				options.screenHeight,
+				config.screenWidth,
+				config.screenHeight,
 			)
 			.fill({ color: 0xfff9e6, alpha: 1 });
 
@@ -109,23 +109,23 @@
 		dotsContainer.removeChildren();
 
 		blobs = [];
-		for (let i: number = 0; i < options.totalBlobs; i++) {
+		for (let i: number = 0; i < config.blobs; i++) {
 			blobs.push(
 				new Blob(
 					dotsContainer,
 					new Point(
-						Math.random() * options.screenWidth,
-						Math.random() * options.screenHeight,
+						Math.random() * config.screenWidth,
+						Math.random() * config.screenHeight,
 					),
 				),
 			);
 		}
 
 		blobs.forEach((blob: Blob) => {
-			blob.setRadius(options);
-			blob.setVelocity(options);
+			blob.setRadius(config);
+			blob.setVelocity(config);
 		});
-		blobs[0].setRadius(options, options.blobsMaxSize);
+		blobs[0].setRadius(config, config.blobsMaxSize);
 
 		layers.forEach((layer: Layer) => {
 			layer.destroy();
@@ -135,17 +135,17 @@
 		const colors: Array<string> = ColorSteps.getColorSteps(
 			"#f7dd87",
 			"#de710c",
-			options.totalLayers,
+			config.layers,
 		);
 
-		for (let i: number = 0; i < options.totalLayers; i++) {
+		for (let i: number = 0; i < config.layers; i++) {
 			const color = colors[i];
 			layers.push(
 				new Layer(
 					layersContainer,
-					options.resolution,
+					config.resolution,
 					i + 1,
-					new Rectangle(0, 0, options.screenWidth, options.screenHeight),
+					new Rectangle(0, 0, config.screenWidth, config.screenHeight),
 					blobs,
 					color,
 				),
@@ -159,26 +159,23 @@
 		});
 
 		const labelFreq: number = Math.round(
-			map(options.resolution, 15, 40, 6, 1, true),
+			map(config.resolution, 15, 40, 6, 1, true),
 		);
 
 		labels = [];
 
-		if (options.debug) {
+		if (config.debug) {
 			for (let y = 0; y < layer.inputValues.length; y++) {
 				for (let x = 0; x < layer.inputValues[y].length; x++) {
 					if (x % labelFreq == 0 && y % labelFreq == 0) {
 						labels.push(
 							new Label(
 								debugContainer,
-								options,
+								config,
 								y,
 								x,
-								new Point(
-									x * options.resolution + 4,
-									y * options.resolution + 4,
-								),
-								new Rectangle(0, 0, options.screenWidth, options.screenHeight),
+								new Point(x * config.resolution + 4, y * config.resolution + 4),
+								new Rectangle(0, 0, config.screenWidth, config.screenHeight),
 							),
 						);
 					}
@@ -189,29 +186,27 @@
 	};
 
 	const render = () => {
-		options.FPS = app.ticker.FPS;
+		config.FPS = app.ticker.FPS;
 
 		if (state != "ready") return;
 
 		if (mousePressed) {
-			if (options.useCursor) {
-				blobs[0].wave(options);
+			if (config.useCursor) {
+				blobs[0].wave(config);
 			}
 		}
 
 		layers.forEach((layer: Layer) => {
-			layer.draw(options);
+			layer.draw(config);
 		});
 
 		blobs.forEach((blob: Blob, i) => {
-			if (options.useCursor && i == 0) {
+			if (config.useCursor && i == 0) {
 				// TODO
 			} else {
-				blob.move(
-					new Rectangle(0, 0, options.screenWidth, options.screenHeight),
-				);
+				blob.move(new Rectangle(0, 0, config.screenWidth, config.screenHeight));
 			}
-			blob.draw(options);
+			blob.draw(config);
 		});
 
 		const layer: Layer = layers[0] as Layer;
@@ -244,7 +239,7 @@
 			backgroundColor: 0x222222,
 		});
 
-		app.ticker.maxFPS = options.maxFPS;
+		app.ticker.maxFPS = config.maxFPS;
 
 		if (!isWebGLSupported()) {
 			type = "canvas";
@@ -265,7 +260,7 @@
 
 		app.stage.interactive = true;
 		app.stage.on("mousemove", function (event) {
-			if (options.useCursor) {
+			if (config.useCursor) {
 				blobs[0].pos.x = event.global.x - layersContainer.x;
 				blobs[0].pos.y = event.global.y - layersContainer.y;
 			}
@@ -285,34 +280,52 @@
 			render();
 		});
 
-		/*
+		const paneContainer = document.getElementById("tweakpane");
+
 		tweakpane = new Pane({
-			title: "TWEAKS",
-			expanded: options.tweaksExpanded,
+			container: paneContainer ? paneContainer : undefined,
 		});
 
-		tweakpane.addBinding(options, "FPS", {
+		tweakpane.on("change", () => {
+			const preset = tweakpane.exportState();
+			const str = typeof preset === "string" ? preset : JSON.stringify(preset);
+			localStorage.setItem(window.location.pathname, str);
+		});
+
+		const folderInfo = (tweakpane as FolderApi).addFolder({
+			title: "Info",
+			expanded: true,
+		});
+
+		folderInfo.addBinding(config, "FPS", {
 			readonly: true,
 		});
 
-		tweakpane.addBinding(options, "screenWidth", {
+		folderInfo.addBinding(config, "screenWidth", {
 			readonly: true,
 		});
 
-		tweakpane.addBinding(options, "screenHeight", {
+		folderInfo.addBinding(config, "screenHeight", {
 			readonly: true,
 		});
 
-		// tweakpane.addBinding(options, "debug");
+		const folderTweaks = (tweakpane as FolderApi).addFolder({
+			title: "Tweaks",
+			expanded: true,
+		});
 
-		tweakpane.addBinding(options, "fullCanvasSize").on("change", () => {
+		folderTweaks.addBinding(config, "debug").on("change", () => {
 			resizeHandler();
 		});
-		tweakpane.addBinding(options, "useCursor");
-		tweakpane.addBinding(options, "interpolation");
 
-		tweakpane
-			.addBinding(options, "resolution", {
+		folderTweaks.addBinding(config, "fullCanvas").on("change", () => {
+			resizeHandler();
+		});
+		folderTweaks.addBinding(config, "useCursor");
+		folderTweaks.addBinding(config, "interpolation");
+
+		folderTweaks
+			.addBinding(config, "resolution", {
 				min: 10,
 				max: 30,
 				step: 1,
@@ -321,8 +334,8 @@
 				resizeHandler();
 			});
 
-		tweakpane
-			.addBinding(options, "totalBlobs", {
+		folderTweaks
+			.addBinding(config, "blobs", {
 				min: 2,
 				max: 10,
 				step: 1,
@@ -331,46 +344,46 @@
 				resizeHandler();
 			});
 
-		tweakpane
-			.addBinding(options, "blobsMinSize", {
+		folderTweaks
+			.addBinding(config, "blobsMinSize", {
 				min: 5,
 				max: 20,
 				step: 1,
 			})
 			.on("change", () => {
 				blobs.forEach((blob: Blob) => {
-					blob.setRadius(options);
+					blob.setRadius(config);
 				});
-				blobs[0].setRadius(options, options.blobsMaxSize);
+				blobs[0].setRadius(config, config.blobsMaxSize);
 			});
 
-		tweakpane
-			.addBinding(options, "blobsMaxSize", {
+		folderTweaks
+			.addBinding(config, "blobsMaxSize", {
 				min: 0,
 				max: 100,
 				step: 1,
 			})
 			.on("change", () => {
 				blobs.forEach((blob: Blob) => {
-					blob.setRadius(options);
+					blob.setRadius(config);
 				});
-				blobs[0].setRadius(options, options.blobsMaxSize);
+				blobs[0].setRadius(config, config.blobsMaxSize);
 			});
 
-		tweakpane
-			.addBinding(options, "blobsSpeedFactor", {
+		folderTweaks
+			.addBinding(config, "blobsSpeed", {
 				min: 1,
 				max: 10,
 				step: 1,
 			})
 			.on("change", () => {
 				blobs.forEach((blob: Blob) => {
-					blob.setVelocity(options);
+					blob.setVelocity(config);
 				});
 			});
 
-		tweakpane
-			.addBinding(options, "totalLayers", {
+		folderTweaks
+			.addBinding(config, "layers", {
 				min: 1,
 				max: 20,
 				step: 1,
@@ -379,12 +392,21 @@
 				resizeHandler();
 			});
 
-		tweakpane.addBinding(options, "layersDistanceFactor", {
+		folderTweaks.addBinding(config, "distance", {
 			min: 0,
 			max: 5,
 			step: 0.1,
 		});
-		 */
+
+		const saved = localStorage.getItem(window.location.pathname);
+		if (saved) {
+			const parsed = JSON.parse(saved);
+			if (typeof tweakpane.importState === "function") {
+				tweakpane.importState(parsed);
+			}
+		}
+
+		resizeHandler();
 	});
 </script>
 
@@ -394,4 +416,5 @@
 
 <div id="app">
 	<div id="pixi-container"></div>
+	<div id="tweakpane"></div>
 </div>

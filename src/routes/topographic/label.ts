@@ -1,5 +1,5 @@
 import { Container, Point, TextStyle, Text, Rectangle } from "pixi.js";
-import type { Options } from "./options";
+import type { Config } from "./config";
 
 export default class Label {
 	public x!: number;
@@ -13,7 +13,7 @@ export default class Label {
 
 	constructor(
 		container: Container,
-		options: Options,
+		config: Config,
 		y: number,
 		x: number,
 		pos: Point,
