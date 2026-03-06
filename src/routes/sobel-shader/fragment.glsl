@@ -8,7 +8,8 @@ in vec4 vColor;
 uniform sampler2D uTexture;
 uniform vec2 uResolution;
 uniform float uTime;
-uniform float contour;
+uniform float uContour;
+uniform int uInvert;
 
 vec4 mirroredTexture(sampler2D tex, vec2 v) {
   vec2 m = mod(v, 2.);
@@ -67,7 +68,14 @@ vec4 sobel(sampler2D src, vec2 vUV, vec2 resolution, float contour) {
 
 void main(void) {
   vec2 uv = vTextureCoord.xy;
+
+  fragColor = mirroredTexture(uTexture, uv);
+
   vec2 size = (uResolution.x > 0.0 && uResolution.y > 0.0)
     ? uResolution : vec2(textureSize(uTexture, 0));
-  fragColor = sobel(uTexture, uv, size, contour);
+  fragColor = sobel(uTexture, uv, size, uContour);
+
+  if (uInvert != 0) {
+    fragColor = vec4(1.0 - fragColor.rgb, fragColor.a);
+  }
 }

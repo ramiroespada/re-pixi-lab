@@ -2,7 +2,7 @@
 precision highp float;
 
 in vec2 vTextureCoord;
-out vec4 finalColor;
+out vec4 fragColor;
 
 uniform sampler2D uTexture;
 uniform sampler2D uBlueNoise; // tiling blue noise texture (R=x jitter, G=y jitter)
@@ -13,6 +13,12 @@ uniform float uSmoothness;
 uniform float uRenderMode;
 uniform float uJitter;
 uniform float uBlueNoiseSize; // texture width/height in texels (e.g. 64.0)
+
+vec4 mirroredTexture(sampler2D tex, vec2 v) {
+  vec2 m = mod(v, 2.);
+  vec2 result = mix(m, 2. - m, step(1., m));
+  return texture(tex, result);
+}
 
 void main(void) {
   vec4 tex = texture(uTexture, vTextureCoord);
@@ -74,5 +80,11 @@ void main(void) {
   // ── Select mode ───────────────────────────────────────────────────────────
   float pattern = mix(linePattern, dotPattern, step(0.5, uRenderMode));
 
-  finalColor = vec4(vec3(pattern), tex.a);
+  vec4 color = vec4(vec3(pattern), tex.a);
+  vec2 uv = vTextureCoord.xy;
+
+  float strength = 0.0; //smoothstep(0.4, 0.8, uv.y);
+  vec4 colorOrigin = mirroredTexture(uTexture, uv);
+
+  fragColor = mix(color, colorOrigin, strength);
 }

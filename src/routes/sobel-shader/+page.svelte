@@ -38,10 +38,10 @@
 	let video: HTMLVideoElement | null = null;
 
 	let adjustmentFilter: AdjustmentFilter = new AdjustmentFilter({
-		gamma: 1,
-		saturation: 1.5,
-		contrast: 1.2,
-		brightness: 0.2,
+		gamma: 1.1,
+		saturation: 2.2,
+		contrast: 2.8,
+		brightness: 0.5,
 	});
 
 	const config: Config = {
@@ -50,10 +50,11 @@
 		screenHeight: 0,
 		maxFPS: 60,
 		scale: 1,
-		contour: 1.0,
+		contour: 0.7,
 		source: "picture",
 		imageX: 0,
 		imageY: 0,
+		invert: false,
 	};
 
 	const setImagePositionFromNormalized = (nx: number, ny: number) => {
@@ -164,7 +165,8 @@
 			resources: {
 				customUniforms: {
 					uTime: { value: 0.0, type: "f32" },
-					contour: { value: config.contour, type: "f32" },
+					uContour: { value: config.contour, type: "f32" },
+					uInvert: { value: config.invert ? 0 : 1, type: "i32" }, // was 0.0 / "f32" — must match int in GLSL
 					uResolution: {
 						value: [app.renderer.screen.width, app.renderer.screen.height],
 						type: "vec2<f32>",
@@ -185,13 +187,16 @@
 			stream = await navigator.mediaDevices.getUserMedia({ video: true });
 			if (!stream) return null;
 
-			video = document.createElement("video");
-			video.srcObject = stream;
-			video.autoplay = true;
-			video.muted = true;
-			video.playsInline = true;
-			video.style.display = "none";
-			document.body.appendChild(video);
+			if (!video) {
+				video = document.createElement("video");
+				video.id = window.location.pathname;
+				video.srcObject = stream;
+				video.autoplay = true;
+				video.muted = true;
+				video.playsInline = true;
+				video.style.display = "none";
+				document.body.appendChild(video);
+			}
 
 			return new Promise((resolve) => {
 				if (!video) return;
@@ -359,9 +364,18 @@
 				step: 0.1,
 			})
 			.on("change", () => {
-				glslFilter.resources.customUniforms.uniforms.contour = config.contour;
+				if (glslFilter)
+					glslFilter.resources.customUniforms.uniforms.uContour =
+						config.contour;
 				resizeHandler();
 			});
+
+		folder.addBinding(config, "invert").on("change", () => {
+			if (glslFilter)
+				glslFilter.resources.customUniforms.uniforms.uInvert = config.invert
+					? 0
+					: 1;
+		});
 
 		const saved = localStorage.getItem(window.location.pathname);
 		if (saved) {

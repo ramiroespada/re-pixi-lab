@@ -41,10 +41,10 @@
 	let blur: BlurFilter;
 
 	let adjustmentFilter: AdjustmentFilter = new AdjustmentFilter({
-		gamma: 1,
-		saturation: 1.5,
-		contrast: 1.2,
-		brightness: 0.2,
+		gamma: 1.5,
+		saturation: 0.0,
+		contrast: 3.0,
+		brightness: 0.55,
 	});
 
 	const config: Config = {
@@ -56,12 +56,12 @@
 		source: "picture",
 		imageX: 0,
 		imageY: 0,
-		contour: 1.1,
+		contour: 1,
 		spacing: 16,
 		hatchLimit: 1.3,
 		smoothness: 0,
 		blur: 0,
-		renderMode: 0.0,
+		renderMode: "lines",
 		jitter: 0.0,
 	};
 
@@ -193,7 +193,10 @@
 					uSpacing: { value: config.spacing, type: "f32" },
 					uHatchLimit: { value: config.hatchLimit, type: "f32" },
 					uSmoothness: { value: config.smoothness, type: "f32" },
-					uRenderMode: { value: config.renderMode, type: "f32" },
+					uRenderMode: {
+						value: config.renderMode === "lines" ? 0.0 : 1.0,
+						type: "f32",
+					},
 					uJitter: { value: config.jitter, type: "f32" },
 					uBlueNoiseSize: { value: 64.0, type: "f32" }, // texture width/height
 				},
@@ -215,13 +218,16 @@
 			stream = await navigator.mediaDevices.getUserMedia({ video: true });
 			if (!stream) return null;
 
-			video = document.createElement("video");
-			video.srcObject = stream;
-			video.autoplay = true;
-			video.muted = true;
-			video.playsInline = true;
-			video.style.display = "none";
-			document.body.appendChild(video);
+			if (!video) {
+				video = document.createElement("video");
+				video.id = window.location.pathname;
+				video.srcObject = stream;
+				video.autoplay = true;
+				video.muted = true;
+				video.playsInline = true;
+				video.style.display = "none";
+				document.body.appendChild(video);
+			}
 
 			return new Promise((resolve) => {
 				if (!video) return;
@@ -235,6 +241,20 @@
 			console.error("Error accessing webcam: ", error);
 		}
 	};
+
+	onDestroy(() => {
+		if (stream) {
+			stream.getTracks().forEach((track) => track.stop());
+		}
+		if (video) {
+			video.srcObject = null;
+			document.body.removeChild(video);
+			video = null;
+		}
+
+		app.destroy();
+		window.removeEventListener("resize", resizeHandler);
+	});
 
 	onMount(async () => {
 		const el = document.getElementById("pixi-container");
@@ -427,6 +447,17 @@
 				min: 0,
 				max: 22,
 				step: 1,
+			})
+			.on("change", () => {
+				updateFilers();
+			});
+
+		folder
+			.addBinding(config, "renderMode", {
+				options: [
+					{ text: "lines", value: "lines" },
+					{ text: "dots", value: "dots" },
+				],
 			})
 			.on("change", () => {
 				updateFilers();

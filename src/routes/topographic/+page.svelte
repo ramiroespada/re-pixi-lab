@@ -221,6 +221,11 @@
 		}
 	};
 
+	onDestroy(() => {
+		app.destroy();
+		window.removeEventListener("resize", resizeHandler);
+	});
+
 	onMount(async () => {
 		const el = document.getElementById("pixi-container");
 		if (el) {

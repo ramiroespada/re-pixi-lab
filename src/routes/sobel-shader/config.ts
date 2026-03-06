@@ -8,4 +8,5 @@ export type Config = {
 	source: "picture" | "webcam";
 	imageX: number;
 	imageY: number;
+	invert: boolean;
 };

@@ -146,7 +146,7 @@
 			}
 		} else if (config.source == "picture") {
 			texture = await Assets.load({
-				src: "/bg2.jpg",
+				src: "/bg4.jpg",
 			});
 
 			texture.source.style.addressMode = "clamp-to-edge";
@@ -169,11 +169,13 @@
 						type: "vec2<f32>",
 					},
 
-					uEdgeThreshold: { value: 0.025, type: "f32" },
-					uEdgeThickness: { value: 0.0001, type: "f32" },
+					uEdgeThreshold: { value: 0.015, type: "f32" },
+					uEdgeThickness: { value: 0.00001, type: "f32" },
 					uEdgeColor: { value: [0.0, 0.0, 0.0], type: "vec3<f32>" },
 					uEdgeOpacity: { value: 1.0, type: "f32" },
-
+					uIsoThreshold: { value: 0.5, type: "f32" },
+					uIsoRadius: { value: 2, type: "i32" },
+					uIsoDarkRatio: { value: 0.5, type: "f32" },
 					uInvertEdges: { value: 0, type: "i32" },
 					uOnlyEdges: { value: 1, type: "i32" },
 					uUseLum: { value: 0, type: "i32" },
@@ -182,7 +184,7 @@
 			resolution: window.devicePixelRatio || 1,
 		});
 
-		const blur: Filter = new BlurFilter(2, 2);
+		const blur: Filter = new BlurFilter({ strength: 0 });
 
 		(image as any).filters = [blur, adjustmentFilter, glslFilter];
 		(thumbnail as any).filters = [adjustmentFilter];
@@ -195,13 +197,16 @@
 			stream = await navigator.mediaDevices.getUserMedia({ video: true });
 			if (!stream) return null;
 
-			video = document.createElement("video");
-			video.srcObject = stream;
-			video.autoplay = true;
-			video.muted = true;
-			video.playsInline = true;
-			video.style.display = "none";
-			document.body.appendChild(video);
+			if (!video) {
+				video = document.createElement("video");
+				video.id = window.location.pathname;
+				video.srcObject = stream;
+				video.autoplay = true;
+				video.muted = true;
+				video.playsInline = true;
+				video.style.display = "none";
+				document.body.appendChild(video);
+			}
 
 			return new Promise((resolve) => {
 				if (!video) return;
@@ -215,6 +220,20 @@
 			console.error("Error accessing webcam: ", error);
 		}
 	};
+
+	onDestroy(() => {
+		if (stream) {
+			stream.getTracks().forEach((track) => track.stop());
+		}
+		if (video) {
+			video.srcObject = null;
+			document.body.removeChild(video);
+			video = null;
+		}
+
+		app.destroy();
+		window.removeEventListener("resize", resizeHandler);
+	});
 
 	onMount(async () => {
 		const el = document.getElementById("pixi-container");

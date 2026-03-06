@@ -172,7 +172,7 @@
 			},
 			resolution: window.devicePixelRatio || 1,
 		});
-		ª(image as any).filters = [adjustmentFilter, glslFilter];
+		(image as any).filters = [adjustmentFilter, glslFilter];
 		(thumbnail as any).filters = [adjustmentFilter];
 
 		resizeHandler();
@@ -183,13 +183,16 @@
 			stream = await navigator.mediaDevices.getUserMedia({ video: true });
 			if (!stream) return null;
 
-			video = document.createElement("video");
-			video.srcObject = stream;
-			video.autoplay = true;
-			video.muted = true;
-			video.playsInline = true;
-			video.style.display = "none";
-			document.body.appendChild(video);
+			if (!video) {
+				video = document.createElement("video");
+				video.id = window.location.pathname;
+				video.srcObject = stream;
+				video.autoplay = true;
+				video.muted = true;
+				video.playsInline = true;
+				video.style.display = "none";
+				document.body.appendChild(video);
+			}
 
 			return new Promise((resolve) => {
 				if (!video) return;
@@ -203,6 +206,20 @@
 			console.error("Error accessing webcam: ", error);
 		}
 	};
+
+	onDestroy(() => {
+		if (stream) {
+			stream.getTracks().forEach((track) => track.stop());
+		}
+		if (video) {
+			video.srcObject = null;
+			document.body.removeChild(video);
+			video = null;
+		}
+
+		app.destroy();
+		window.removeEventListener("resize", resizeHandler);
+	});
 
 	onMount(async () => {
 		const el = document.getElementById("pixi-container");
