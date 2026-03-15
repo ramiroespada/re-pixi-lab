@@ -22,6 +22,7 @@
 	import { AdjustmentFilter } from "pixi-filters";
 
 	import type { Config } from "./config";
+	import { hexToRgb, hexToRgbNormalized } from "$lib/utils";
 
 	const app: Application = new Application();
 	const container: Container = new Container({ label: "Container" });
@@ -40,9 +41,9 @@
 
 	let adjustmentFilter: AdjustmentFilter = new AdjustmentFilter({
 		gamma: 1,
-		saturation: 1.5,
-		contrast: 1.2,
-		brightness: 0.2,
+		saturation: 0,
+		contrast: 0.8,
+		brightness: 1,
 	});
 
 	const config: Config = {
@@ -51,9 +52,20 @@
 		screenHeight: 0,
 		maxFPS: 60,
 		scale: 1,
-		source: "picture",
+		source: "bike",
 		imageX: 0,
 		imageY: 0,
+		edgeThreshold: 0.016,
+		edgeThickness: 0.00001,
+		edgeColor: "#242424",
+		edgeOpacity: 1.0,
+		isoThreshold: 0.5,
+		isoRadius: 2,
+		isoDarkRatio: 0.5,
+		invertEdges: false,
+		onlyEdges: true,
+		useLum: false,
+		blurStrength: 4,
 	};
 
 	const setImagePositionFromNormalized = (nx: number, ny: number) => {
@@ -136,7 +148,7 @@
 		config.FPS = app.ticker.FPS;
 	};
 
-	const updateFilers = async () => {
+	const updateFilters = async () => {
 		if (config.source == "webcam") {
 			if (!stream) {
 				await getWebcamStream();
@@ -144,9 +156,9 @@
 			if (video) {
 				texture = Texture.from(video);
 			}
-		} else if (config.source == "picture") {
+		} else {
 			texture = await Assets.load({
-				src: "/bg4.jpg",
+				src: "/images/" + config.source + ".jpg",
 			});
 
 			texture.source.style.addressMode = "clamp-to-edge";
@@ -155,6 +167,8 @@
 
 		thumbnail.texture = texture;
 		image.texture = texture;
+
+		const color = hexToRgbNormalized(config.edgeColor);
 
 		glslFilter = new Filter({
 			glProgram: new GlProgram({
@@ -169,22 +183,22 @@
 						type: "vec2<f32>",
 					},
 
-					uEdgeThreshold: { value: 0.015, type: "f32" },
-					uEdgeThickness: { value: 0.00001, type: "f32" },
-					uEdgeColor: { value: [0.0, 0.0, 0.0], type: "vec3<f32>" },
-					uEdgeOpacity: { value: 1.0, type: "f32" },
-					uIsoThreshold: { value: 0.5, type: "f32" },
-					uIsoRadius: { value: 2, type: "i32" },
-					uIsoDarkRatio: { value: 0.5, type: "f32" },
-					uInvertEdges: { value: 0, type: "i32" },
-					uOnlyEdges: { value: 1, type: "i32" },
-					uUseLum: { value: 0, type: "i32" },
+					uEdgeThreshold: { value: config.edgeThreshold, type: "f32" },
+					uEdgeThickness: { value: config.edgeThickness, type: "f32" },
+					uEdgeColor: { value: [color.r, color.g, color.b], type: "vec3<f32>" },
+					uEdgeOpacity: { value: config.edgeOpacity, type: "f32" },
+					uIsoThreshold: { value: config.isoThreshold, type: "f32" },
+					uIsoRadius: { value: config.isoRadius, type: "i32" },
+					uIsoDarkRatio: { value: config.isoDarkRatio, type: "f32" },
+					uInvertEdges: { value: config.invertEdges ? 1 : 0, type: "i32" },
+					uOnlyEdges: { value: config.onlyEdges ? 1 : 0, type: "i32" },
+					uUseLum: { value: config.useLum ? 1 : 0, type: "i32" },
 				},
 			},
 			resolution: window.devicePixelRatio || 1,
 		});
 
-		const blur: Filter = new BlurFilter({ strength: 0 });
+		const blur: Filter = new BlurFilter({ strength: config.blurStrength });
 
 		(image as any).filters = [blur, adjustmentFilter, glslFilter];
 		(thumbnail as any).filters = [adjustmentFilter];
@@ -222,17 +236,21 @@
 	};
 
 	onDestroy(() => {
-		if (stream) {
-			stream.getTracks().forEach((track) => track.stop());
+		try {
+			if (stream) {
+				stream.getTracks().forEach((track) => track.stop());
+			}
+			if (video) {
+				video.srcObject = null;
+				document.body.removeChild(video);
+				video = null;
+			}
+			tweakpane.dispose();
+			app.destroy();
+			window.removeEventListener("resize", resizeHandler);
+		} catch (e) {
+			console.log("RE / e:", e);
 		}
-		if (video) {
-			video.srcObject = null;
-			document.body.removeChild(video);
-			video = null;
-		}
-
-		app.destroy();
-		window.removeEventListener("resize", resizeHandler);
 	});
 
 	onMount(async () => {
@@ -276,7 +294,7 @@
 		background.interactive = true;
 		background.on("pointerdown", updateCursor);
 
-		updateFilers();
+		updateFilters();
 
 		app.ticker.add(() => {
 			render();
@@ -286,12 +304,6 @@
 
 		tweakpane = new Pane({
 			container: paneContainer ? paneContainer : undefined,
-		});
-
-		tweakpane.on("change", () => {
-			const preset = tweakpane.exportState();
-			const str = typeof preset === "string" ? preset : JSON.stringify(preset);
-			localStorage.setItem(window.location.pathname, str);
 		});
 
 		const folderInfo = (tweakpane as FolderApi).addFolder({
@@ -319,12 +331,17 @@
 		folderAdjustment
 			.addBinding(config, "source", {
 				options: [
-					{ text: "picture", value: "picture" },
+					{ text: "anna", value: "anna" },
+					{ text: "bike", value: "bike" },
+					{ text: "couple", value: "couple" },
+					{ text: "erik", value: "erik" },
+					{ text: "moon", value: "moon" },
+					{ text: "valley", value: "valley" },
 					{ text: "webcam", value: "webcam" },
 				],
 			})
 			.on("change", () => {
-				updateFilers();
+				updateFilters();
 			});
 
 		folderAdjustment
@@ -344,7 +361,7 @@
 				step: 0.1,
 			})
 			.on("change", () => {
-				updateFilers();
+				updateFilters();
 			});
 
 		folderAdjustment
@@ -354,7 +371,7 @@
 				step: 0.1,
 			})
 			.on("change", () => {
-				updateFilers();
+				updateFilters();
 			});
 
 		folderAdjustment
@@ -364,7 +381,7 @@
 				step: 0.1,
 			})
 			.on("change", () => {
-				updateFilers();
+				updateFilters();
 			});
 
 		folderAdjustment
@@ -374,21 +391,100 @@
 				step: 0.1,
 			})
 			.on("change", () => {
-				updateFilers();
+				updateFilters();
 			});
 
 		const folder = (tweakpane as FolderApi).addFolder({
-			title: "Sketch",
+			title: "Edge",
 		});
 
-		const saved = localStorage.getItem(window.location.pathname);
-		if (saved) {
-			const parsed = JSON.parse(saved);
-			if (typeof tweakpane.importState === "function") {
-				tweakpane.importState(parsed);
-			}
-		}
-		updateFilers();
+		folder
+			.addBinding(config, "edgeThreshold", {
+				min: 0,
+				max: 0.025,
+				step: 0.00001,
+			})
+			.on("change", () => {
+				updateFilters();
+			});
+
+		folder
+			.addBinding(config, "edgeThickness", {
+				min: 0.000000001,
+				max: 0.00009,
+				step: 0.000001,
+			})
+			.on("change", () => {
+				updateFilters();
+			});
+
+		folder
+			.addBinding(config, "edgeOpacity", {
+				min: 0,
+				max: 1,
+				step: 0.1,
+			})
+			.on("change", () => {
+				updateFilters();
+			});
+
+		folder.addBinding(config, "edgeColor").on("change", () => {
+			updateFilters();
+		});
+
+		folder
+			.addBinding(config, "isoThreshold", {
+				min: 0,
+				max: 1,
+				step: 0.01,
+			})
+			.on("change", () => {
+				updateFilters();
+			});
+
+		folder
+			.addBinding(config, "isoRadius", {
+				min: 0,
+				max: 2,
+				step: 1,
+			})
+			.on("change", () => {
+				updateFilters();
+			});
+
+		folder
+			.addBinding(config, "isoDarkRatio", {
+				min: 0,
+				max: 1,
+				step: 0.01,
+			})
+			.on("change", () => {
+				updateFilters();
+			});
+
+		folder.addBinding(config, "invertEdges").on("change", () => {
+			updateFilters();
+		});
+
+		folder.addBinding(config, "onlyEdges").on("change", () => {
+			updateFilters();
+		});
+
+		folder.addBinding(config, "useLum").on("change", () => {
+			updateFilters();
+		});
+
+		folder
+			.addBinding(config, "blurStrength", {
+				min: 0,
+				max: 12,
+				step: 1,
+			})
+			.on("change", () => {
+				updateFilters();
+			});
+
+		updateFilters();
 	});
 </script>
 

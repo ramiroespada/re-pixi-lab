@@ -4,6 +4,7 @@
 	<p><a href="./ink-shader">Ink Shader</a></p>
 	<p><a href="./edge-shader">Edge Shader</a></p>
 	<p><a href="./noise-dither-shader">Noise Dither Shader</a></p>
+	<p><a href="./diagonals-shader">Diagonals Shader</a></p>
 </div>
 
 <svelte:head>

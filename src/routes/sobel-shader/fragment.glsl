@@ -11,6 +11,11 @@ uniform float uTime;
 uniform float uContour;
 uniform int uInvert;
 
+// Built-in PixiJS filter uniforms
+uniform vec4 uInputSize; // xy = input texture size,  zw = 1/size
+uniform vec4 uOutputFrame; // xy = frame offset (px),   zw = frame size (px)
+uniform vec4 uOutputTexture; // xy = output texture size, zw = unused here
+
 vec4 mirroredTexture(sampler2D tex, vec2 v) {
   vec2 m = mod(v, 2.);
   vec2 result = mix(m, 2. - m, step(1., m));
@@ -69,10 +74,13 @@ vec4 sobel(sampler2D src, vec2 vUV, vec2 resolution, float contour) {
 void main(void) {
   vec2 uv = vTextureCoord.xy;
 
+  vec2 screenNorm = (uOutputFrame.xy + uv * uInputSize.xy) / uOutputTexture.xy;
+
   fragColor = mirroredTexture(uTexture, uv);
 
   vec2 size = (uResolution.x > 0.0 && uResolution.y > 0.0)
     ? uResolution : vec2(textureSize(uTexture, 0));
+
   fragColor = sobel(uTexture, uv, size, uContour);
 
   if (uInvert != 0) {

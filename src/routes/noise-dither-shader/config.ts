@@ -4,7 +4,8 @@ export type Config = {
 	screenHeight: number;
 	maxFPS: number;
 	scale: number;
-	source: "picture" | "webcam";
+	source: "anna" | "bike" | "couple" | "erik" | "moon" | "valley" | "webcam";
 	imageX: number;
 	imageY: number;
+	noiseSize: number;
 };

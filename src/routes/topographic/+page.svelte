@@ -34,7 +34,7 @@
 		maxFPS: 60,
 		layerWidth: 800,
 		layerHeight: 800,
-		debug: false,
+		debug: true,
 		fullCanvas: true,
 		useCursor: true,
 		interpolation: true,
@@ -222,8 +222,13 @@
 	};
 
 	onDestroy(() => {
-		app.destroy();
-		window.removeEventListener("resize", resizeHandler);
+		try {
+			tweakpane.dispose();
+			app.destroy();
+			window.removeEventListener("resize", resizeHandler);
+		} catch (e) {
+			console.log("RE / e:", e);
+		}
 	});
 
 	onMount(async () => {
@@ -289,12 +294,6 @@
 
 		tweakpane = new Pane({
 			container: paneContainer ? paneContainer : undefined,
-		});
-
-		tweakpane.on("change", () => {
-			const preset = tweakpane.exportState();
-			const str = typeof preset === "string" ? preset : JSON.stringify(preset);
-			localStorage.setItem(window.location.pathname, str);
 		});
 
 		const folderInfo = (tweakpane as FolderApi).addFolder({
@@ -402,14 +401,6 @@
 			max: 5,
 			step: 0.1,
 		});
-
-		const saved = localStorage.getItem(window.location.pathname);
-		if (saved) {
-			const parsed = JSON.parse(saved);
-			if (typeof tweakpane.importState === "function") {
-				tweakpane.importState(parsed);
-			}
-		}
 
 		resizeHandler();
 	});

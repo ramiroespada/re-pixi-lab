@@ -40,10 +40,10 @@
 	let video: HTMLVideoElement | null = null;
 
 	let adjustmentFilter: AdjustmentFilter = new AdjustmentFilter({
-		gamma: 1,
-		saturation: 1.5,
-		contrast: 1.2,
-		brightness: 0.2,
+		gamma: 1.2,
+		saturation: 0,
+		contrast: 2.0,
+		brightness: 1.0,
 	});
 
 	const config: Config = {
@@ -52,9 +52,10 @@
 		screenHeight: 0,
 		maxFPS: 60,
 		scale: 1,
-		source: "picture",
+		source: "couple",
 		imageX: 0,
 		imageY: 0,
+		noiseSize: 448,
 	};
 
 	const setImagePositionFromNormalized = (nx: number, ny: number) => {
@@ -137,7 +138,7 @@
 		config.FPS = app.ticker.FPS;
 	};
 
-	const updateFilers = async () => {
+	const updateFilters = async () => {
 		if (config.source == "webcam") {
 			if (!stream) {
 				await getWebcamStream();
@@ -145,9 +146,9 @@
 			if (video) {
 				texture = Texture.from(video);
 			}
-		} else if (config.source == "picture") {
+		} else {
 			texture = await Assets.load({
-				src: "/bg2.jpg",
+				src: "/images/" + config.source + ".jpg",
 			});
 
 			texture.source.style.addressMode = "clamp-to-edge";
@@ -156,7 +157,7 @@
 
 		if (!blueNoise) {
 			blueNoise = await Assets.load({
-				src: "/BlueNoise64Tiled.png",
+				src: "/textures/BlueNoise64Tiled.png",
 			});
 			blueNoise.source.style.addressMode = "repeat";
 			blueNoise.source.style.scaleMode = "nearest";
@@ -177,7 +178,7 @@
 						value: [app.renderer.screen.width, app.renderer.screen.height],
 						type: "vec2<f32>",
 					},
-					uBlueNoiseSize: { value: 1024.0, type: "f32" },
+					uBlueNoiseSize: { value: config.noiseSize, type: "f32" },
 				},
 				uBlueNoise: blueNoise.source,
 			},
@@ -219,17 +220,21 @@
 	};
 
 	onDestroy(() => {
-		if (stream) {
-			stream.getTracks().forEach((track) => track.stop());
+		try {
+			if (stream) {
+				stream.getTracks().forEach((track) => track.stop());
+			}
+			if (video) {
+				video.srcObject = null;
+				document.body.removeChild(video);
+				video = null;
+			}
+			tweakpane.dispose();
+			app.destroy();
+			window.removeEventListener("resize", resizeHandler);
+		} catch (e) {
+			console.log("RE / e:", e);
 		}
-		if (video) {
-			video.srcObject = null;
-			document.body.removeChild(video);
-			video = null;
-		}
-
-		app.destroy();
-		window.removeEventListener("resize", resizeHandler);
 	});
 
 	onMount(async () => {
@@ -273,7 +278,7 @@
 		background.interactive = true;
 		background.on("pointerdown", updateCursor);
 
-		updateFilers();
+		updateFilters();
 
 		app.ticker.add(() => {
 			render();
@@ -283,12 +288,6 @@
 
 		tweakpane = new Pane({
 			container: paneContainer ? paneContainer : undefined,
-		});
-
-		tweakpane.on("change", () => {
-			const preset = tweakpane.exportState();
-			const str = typeof preset === "string" ? preset : JSON.stringify(preset);
-			localStorage.setItem(window.location.pathname, str);
 		});
 
 		const folderInfo = (tweakpane as FolderApi).addFolder({
@@ -316,12 +315,17 @@
 		folderAdjustment
 			.addBinding(config, "source", {
 				options: [
-					{ text: "picture", value: "picture" },
+					{ text: "anna", value: "anna" },
+					{ text: "bike", value: "bike" },
+					{ text: "couple", value: "couple" },
+					{ text: "erik", value: "erik" },
+					{ text: "moon", value: "moon" },
+					{ text: "valley", value: "valley" },
 					{ text: "webcam", value: "webcam" },
 				],
 			})
 			.on("change", () => {
-				updateFilers();
+				updateFilters();
 			});
 
 		folderAdjustment
@@ -341,7 +345,7 @@
 				step: 0.1,
 			})
 			.on("change", () => {
-				updateFilers();
+				updateFilters();
 			});
 
 		folderAdjustment
@@ -351,7 +355,7 @@
 				step: 0.1,
 			})
 			.on("change", () => {
-				updateFilers();
+				updateFilters();
 			});
 
 		folderAdjustment
@@ -361,7 +365,7 @@
 				step: 0.1,
 			})
 			.on("change", () => {
-				updateFilers();
+				updateFilters();
 			});
 
 		folderAdjustment
@@ -371,21 +375,24 @@
 				step: 0.1,
 			})
 			.on("change", () => {
-				updateFilers();
+				updateFilters();
 			});
 
 		const folder = (tweakpane as FolderApi).addFolder({
-			title: "Sketch",
+			title: "Dither",
 		});
 
-		const saved = localStorage.getItem(window.location.pathname);
-		if (saved) {
-			const parsed = JSON.parse(saved);
-			if (typeof tweakpane.importState === "function") {
-				tweakpane.importState(parsed);
-			}
-		}
-		updateFilers();
+		folder
+			.addBinding(config, "noiseSize", {
+				min: 64,
+				max: 2028,
+				step: 64,
+			})
+			.on("change", () => {
+				updateFilters();
+			});
+
+		updateFilters();
 	});
 </script>
 

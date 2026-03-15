@@ -13,6 +13,7 @@
 		Sprite,
 		Texture,
 		Filter,
+		BlurFilter,
 		GlProgram,
 	} from "pixi.js";
 	import { gsap } from "gsap";
@@ -38,10 +39,10 @@
 	let video: HTMLVideoElement | null = null;
 
 	let adjustmentFilter: AdjustmentFilter = new AdjustmentFilter({
-		gamma: 1.1,
-		saturation: 2.2,
-		contrast: 2.8,
-		brightness: 0.5,
+		gamma: 1,
+		saturation: 0,
+		contrast: 1.2,
+		brightness: 1.5,
 	});
 
 	const config: Config = {
@@ -50,11 +51,10 @@
 		screenHeight: 0,
 		maxFPS: 60,
 		scale: 1,
-		contour: 0.6,
-		source: "valley",
+		source: "couple",
 		imageX: 0,
 		imageY: 0,
-		invert: true,
+		blurStrength: 0,
 	};
 
 	const setImagePositionFromNormalized = (nx: number, ny: number) => {
@@ -165,18 +165,36 @@
 			resources: {
 				customUniforms: {
 					uTime: { value: 0.0, type: "f32" },
-					uContour: { value: config.contour, type: "f32" },
-					uInvert: { value: config.invert ? 0 : 1, type: "i32" }, // was 0.0 / "f32" — must match int in GLSL
 					uResolution: {
 						value: [app.renderer.screen.width, app.renderer.screen.height],
 						type: "vec2<f32>",
+					},
+					uAmountOfLines: {
+						value: 40,
+						type: "f32",
+					},
+					uPattern: {
+						value: 1,
+						type: "i32",
+					},
+					uInvert: {
+						value: 1,
+						type: "i32",
+					},
+					uLinesColor: {
+						value: [1.0, 1.0, 1.0, 1.0],
+						type: "vec4<f32>",
 					},
 				},
 			},
 			resolution: window.devicePixelRatio || 1,
 		});
 
-		(image as any).filters = [adjustmentFilter, glslFilter];
+		const blur = new BlurFilter({
+			strength: config.blurStrength,
+		});
+
+		(image as any).filters = [blur, adjustmentFilter, glslFilter];
 		(thumbnail as any).filters = [adjustmentFilter];
 
 		resizeHandler();
@@ -307,7 +325,12 @@
 		folderAdjustment
 			.addBinding(config, "source", {
 				options: [
-					{ text: "picture", value: "picture" },
+					{ text: "anna", value: "anna" },
+					{ text: "bike", value: "bike" },
+					{ text: "couple", value: "couple" },
+					{ text: "erik", value: "erik" },
+					{ text: "moon", value: "moon" },
+					{ text: "valley", value: "valley" },
 					{ text: "webcam", value: "webcam" },
 				],
 			})
@@ -366,35 +389,25 @@
 			});
 
 		const folder = (tweakpane as FolderApi).addFolder({
-			title: "Sobel",
+			title: "Diagonals",
 		});
 
 		folder
-			.addBinding(config, "contour", {
-				min: 0.05,
-				max: 2,
-				step: 0.01,
+			.addBinding(config, "blurStrength", {
+				min: 0,
+				max: 20,
+				step: 1,
 			})
 			.on("change", () => {
-				if (glslFilter)
-					glslFilter.resources.customUniforms.uniforms.uContour =
-						config.contour;
-				resizeHandler();
+				updateFilters();
 			});
-
-		folder.addBinding(config, "invert").on("change", () => {
-			if (glslFilter)
-				glslFilter.resources.customUniforms.uniforms.uInvert = config.invert
-					? 0
-					: 1;
-		});
 
 		updateFilters();
 	});
 </script>
 
 <svelte:head>
-	<title>Sobel Shader</title>
+	<title>Sketch Shader</title>
 </svelte:head>
 
 <div id="app">

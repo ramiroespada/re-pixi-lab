@@ -136,7 +136,7 @@
 		config.FPS = app.ticker.FPS;
 	};
 
-	const updateFilers = async () => {
+	const updateFilters = async () => {
 		if (config.source == "webcam") {
 			if (!stream) {
 				await getWebcamStream();
@@ -208,17 +208,21 @@
 	};
 
 	onDestroy(() => {
-		if (stream) {
-			stream.getTracks().forEach((track) => track.stop());
+		try {
+			if (stream) {
+				stream.getTracks().forEach((track) => track.stop());
+			}
+			if (video) {
+				video.srcObject = null;
+				document.body.removeChild(video);
+				video = null;
+			}
+			tweakpane.dispose();
+			app.destroy();
+			window.removeEventListener("resize", resizeHandler);
+		} catch (e) {
+			console.log("RE / e:", e);
 		}
-		if (video) {
-			video.srcObject = null;
-			document.body.removeChild(video);
-			video = null;
-		}
-
-		app.destroy();
-		window.removeEventListener("resize", resizeHandler);
 	});
 
 	onMount(async () => {
@@ -262,7 +266,7 @@
 		background.interactive = true;
 		background.on("pointerdown", updateCursor);
 
-		updateFilers();
+		updateFilters();
 
 		app.ticker.add(() => {
 			render();
@@ -310,7 +314,7 @@
 				],
 			})
 			.on("change", () => {
-				updateFilers();
+				updateFilters();
 			});
 
 		folderAdjustment
@@ -330,7 +334,7 @@
 				step: 0.1,
 			})
 			.on("change", () => {
-				updateFilers();
+				updateFilters();
 			});
 
 		folderAdjustment
@@ -340,7 +344,7 @@
 				step: 0.1,
 			})
 			.on("change", () => {
-				updateFilers();
+				updateFilters();
 			});
 
 		folderAdjustment
@@ -350,7 +354,7 @@
 				step: 0.1,
 			})
 			.on("change", () => {
-				updateFilers();
+				updateFilters();
 			});
 
 		folderAdjustment
@@ -360,7 +364,7 @@
 				step: 0.1,
 			})
 			.on("change", () => {
-				updateFilers();
+				updateFilters();
 			});
 
 		const folder = (tweakpane as FolderApi).addFolder({
@@ -374,7 +378,7 @@
 				tweakpane.importState(parsed);
 			}
 		}
-		updateFilers();
+		updateFilters();
 	});
 </script>
 

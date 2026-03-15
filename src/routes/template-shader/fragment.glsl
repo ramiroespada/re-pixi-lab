@@ -10,6 +10,11 @@ uniform vec2 uResolution;
 uniform float uTime;
 uniform float contour;
 
+// Built-in PixiJS filter uniforms
+uniform vec4 uInputSize; // xy = input texture size,  zw = 1/size
+uniform vec4 uOutputFrame; // xy = frame offset (px),   zw = frame size (px)
+uniform vec4 uOutputTexture; // xy = output texture size, zw = unused here
+
 vec4 mirroredTexture(sampler2D tex, vec2 v) {
   vec2 m = mod(v, 2.);
   vec2 result = mix(m, 2. - m, step(1., m));

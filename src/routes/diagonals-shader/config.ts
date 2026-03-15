@@ -3,10 +3,9 @@ export type Config = {
 	screenWidth: number;
 	screenHeight: number;
 	maxFPS: number;
-	contour: number;
 	scale: number;
 	source: "anna" | "bike" | "couple" | "erik" | "moon" | "valley" | "webcam";
 	imageX: number;
 	imageY: number;
-	invert: boolean;
+	blurStrength: number;
 };
