@@ -8,4 +8,8 @@ export type Config = {
 	imageX: number;
 	imageY: number;
 	blurStrength: number;
+	totalLines: number;
+	linesColor: string;
+	inverted: boolean;
+	pattern: "left-to-right" | "right-to-left" | "quad";
 };

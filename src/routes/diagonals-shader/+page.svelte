@@ -22,6 +22,7 @@
 	import { AdjustmentFilter } from "pixi-filters";
 
 	import type { Config } from "./config";
+	import { hexToRgbNormalized } from "$lib/utils";
 
 	const app: Application = new Application();
 	const container: Container = new Container({ label: "Container" });
@@ -55,6 +56,10 @@
 		imageX: 0,
 		imageY: 0,
 		blurStrength: 0,
+		totalLines: 40,
+		pattern: "left-to-right",
+		inverted: false,
+		linesColor: "#ffffff",
 	};
 
 	const setImagePositionFromNormalized = (nx: number, ny: number) => {
@@ -157,6 +162,8 @@
 		thumbnail.texture = texture;
 		image.texture = texture;
 
+		const color = hexToRgbNormalized(config.linesColor);
+
 		glslFilter = new Filter({
 			glProgram: new GlProgram({
 				fragment,
@@ -170,19 +177,24 @@
 						type: "vec2<f32>",
 					},
 					uAmountOfLines: {
-						value: 40,
+						value: config.totalLines,
 						type: "f32",
 					},
 					uPattern: {
-						value: 1,
+						value:
+							config.pattern === "left-to-right"
+								? 1
+								: config.pattern === "right-to-left"
+									? 2
+									: 0,
 						type: "i32",
 					},
 					uInvert: {
-						value: 1,
+						value: config.inverted ? 0 : 1,
 						type: "i32",
 					},
 					uLinesColor: {
-						value: [1.0, 1.0, 1.0, 1.0],
+						value: [color.r, color.g, color.b],
 						type: "vec4<f32>",
 					},
 				},
@@ -393,10 +405,40 @@
 		});
 
 		folder
+			.addBinding(config, "totalLines", {
+				min: 0,
+				max: 300,
+				step: 1,
+			})
+			.on("change", () => {
+				updateFilters();
+			});
+
+		folder
 			.addBinding(config, "blurStrength", {
 				min: 0,
 				max: 20,
 				step: 1,
+			})
+			.on("change", () => {
+				updateFilters();
+			});
+
+		folder.addBinding(config, "linesColor").on("change", () => {
+			updateFilters();
+		});
+
+		folder.addBinding(config, "inverted").on("change", () => {
+			updateFilters();
+		});
+
+		folder
+			.addBinding(config, "pattern", {
+				options: [
+					{ text: "left-to-right", value: "left-to-right" },
+					{ text: "right-to-left", value: "right-to-left" },
+					{ text: "quad", value: "quad" },
+				],
 			})
 			.on("change", () => {
 				updateFilters();
