@@ -113,13 +113,18 @@
 		image.x = Math.round((screenWidth - image.width) / 2);
 		image.y = Math.round((screenHeight - image.height) / 2);
 
-		thumbnail.width = 275;
-		thumbnail.height = texture.height * (275 / texture.width);
-		thumbnail.x = screenWidth - 275 - 20;
-		thumbnail.y = 20;
+		if (screenWidth <= 600) {
+			thumbnail.width = 0;
+			thumbnail.height = 0;
+		} else {
+			thumbnail.width = 300;
+			thumbnail.height = texture.height * (thumbnail.width / texture.width);
+			thumbnail.x = screenWidth - thumbnail.width;
+			thumbnail.y = 0;
+		}
 
 		if (paneContainer) {
-			paneContainer.style.top = thumbnail.height + 20 + 10 + "px";
+			paneContainer.style.top = thumbnail.height + "px";
 		}
 
 		background.clear();

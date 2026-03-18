@@ -12,4 +12,6 @@ export type Config = {
 	linesColor: string;
 	inverted: boolean;
 	pattern: "left-to-right" | "right-to-left" | "quad";
+	quadXOrigin: number;
+	quadYOrigin: number;
 };

@@ -31,20 +31,18 @@
 	let image: Sprite;
 	let thumbnail: Sprite;
 	let texture: Texture;
-	let blueNoise: Texture;
 	let appContainer: HTMLElement | null = null;
 	let paneContainer: HTMLElement | null = null;
 	let type: string = "WebGL";
 	let tweakpane: Pane;
 	let stream: MediaStream | null = null;
 	let video: HTMLVideoElement | null = null;
-	let blur: BlurFilter;
 
 	let adjustmentFilter: AdjustmentFilter = new AdjustmentFilter({
-		gamma: 1.5,
-		saturation: 0.0,
-		contrast: 3.0,
-		brightness: 0.55,
+		gamma: 1,
+		saturation: 1.5,
+		contrast: 1.2,
+		brightness: 0.2,
 	});
 
 	const config: Config = {
@@ -53,16 +51,9 @@
 		screenHeight: 0,
 		maxFPS: 60,
 		scale: 1,
-		source: "couple",
+		source: "anna",
 		imageX: 0,
 		imageY: 0,
-		contour: 1,
-		spacing: 16,
-		hatchLimit: 1.3,
-		smoothness: 0,
-		blur: 0,
-		renderMode: "lines",
-		jitter: 0.0,
 	};
 
 	const setImagePositionFromNormalized = (nx: number, ny: number) => {
@@ -144,15 +135,6 @@
 			screenWidth,
 			screenHeight,
 		];
-
-		glslFilter.resources.customUniforms.uniforms.uContour = config.contour;
-		glslFilter.resources.customUniforms.uniforms.uSpacing = config.spacing;
-		glslFilter.resources.customUniforms.uniforms.uHatchLimit =
-			config.hatchLimit;
-		glslFilter.resources.customUniforms.uniforms.uSmoothness =
-			config.smoothness;
-
-		blur.strength = config.blur;
 	};
 
 	const render = () => {
@@ -171,16 +153,9 @@
 			texture = await Assets.load({
 				src: "/images/" + config.source + ".jpg",
 			});
+
 			texture.source.style.addressMode = "clamp-to-edge";
 			texture.source.update();
-		}
-
-		if (!blueNoise) {
-			blueNoise = await Assets.load({
-				src: "/textures/BlueNoise64Tiled.png",
-			});
-			blueNoise.source.style.addressMode = "repeat";
-			blueNoise.source.style.scaleMode = "nearest";
 		}
 
 		thumbnail.texture = texture;
@@ -193,25 +168,16 @@
 			}),
 			resources: {
 				customUniforms: {
-					uContour: { value: config.contour, type: "f32" },
-					uSpacing: { value: config.spacing, type: "f32" },
-					uHatchLimit: { value: config.hatchLimit, type: "f32" },
-					uSmoothness: { value: config.smoothness, type: "f32" },
-					uRenderMode: {
-						value: config.renderMode === "lines" ? 0.0 : 1.0,
-						type: "f32",
+					uTime: { value: 0.0, type: "f32" },
+					uResolution: {
+						value: [app.renderer.screen.width, app.renderer.screen.height],
+						type: "vec2<f32>",
 					},
-					uJitter: { value: config.jitter, type: "f32" },
-					uBlueNoiseSize: { value: 64.0, type: "f32" }, // texture width/height
 				},
-				uBlueNoise: blueNoise.source, // key must match the sampler2D name in GLSL
 			},
 			resolution: window.devicePixelRatio || 1,
 		});
-
-		blur = new BlurFilter({ strength: 0, quality: 2 });
-
-		(image as any).filters = [blur, adjustmentFilter, glslFilter];
+		(image as any).filters = [adjustmentFilter, glslFilter];
 		(thumbnail as any).filters = [adjustmentFilter];
 
 		resizeHandler();
@@ -368,8 +334,8 @@
 		folderAdjustment
 			.addBinding(adjustmentFilter, "gamma", {
 				min: 0,
-				max: 2,
-				step: 0.01,
+				max: 5,
+				step: 0.1,
 			})
 			.on("change", () => {
 				updateFilters();
@@ -398,94 +364,25 @@
 		folderAdjustment
 			.addBinding(adjustmentFilter, "brightness", {
 				min: 0,
-				max: 2,
-				step: 0.05,
+				max: 5,
+				step: 0.1,
 			})
 			.on("change", () => {
 				updateFilters();
 			});
 
+		/*
 		const folder = (tweakpane as FolderApi).addFolder({
-			title: "Ink",
+			title: "Sketch",
 		});
-
-		folder
-			.addBinding(config, "contour", {
-				min: 0.1,
-				max: 2,
-				step: 0.05,
-			})
-			.on("change", () => {
-				updateFilters();
-			});
-
-		folder
-			.addBinding(config, "spacing", {
-				min: 1,
-				max: 20,
-				step: 1,
-			})
-			.on("change", () => {
-				updateFilters();
-			});
-
-		folder
-			.addBinding(config, "hatchLimit", {
-				min: 0.1,
-				max: 3,
-				step: 0.1,
-			})
-			.on("change", () => {
-				updateFilters();
-			});
-
-		folder
-			.addBinding(config, "smoothness", {
-				min: 0,
-				max: 2,
-				step: 0.1,
-			})
-			.on("change", () => {
-				updateFilters();
-			});
-
-		folder
-			.addBinding(config, "blur", {
-				min: 0,
-				max: 22,
-				step: 1,
-			})
-			.on("change", () => {
-				updateFilters();
-			});
-
-		folder
-			.addBinding(config, "renderMode", {
-				options: [
-					{ text: "lines", value: "lines" },
-					{ text: "dots", value: "dots" },
-				],
-			})
-			.on("change", () => {
-				updateFilters();
-			});
-
-		folder
-			.addBinding(config, "jitter", {
-				min: 0,
-				max: 50,
-				step: 0.01,
-			})
-			.on("change", () => {
-				updateFilters();
-			});
+		*/
 
 		updateFilters();
 	});
 </script>
 
 <svelte:head>
-	<title>Ink Shader</title>
+	<title>Werness Dither</title>
 </svelte:head>
 
 <div id="app">

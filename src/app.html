@@ -27,11 +27,15 @@
 
 	#tweakpane {
 		position: fixed;
-		top: 20px;
-		right: 20px;
-		width: 275px;
+		top: 0px;
+		right: 0px;
+		width: 300px;
 		height: 100%;
 		padding: 0px;
 		box-sizing: border-box;
+		transform-origin: top right;
+		@media only screen and (max-width: 600px) {
+			transform: scale(0.6);
+		}
 	}
 </style>

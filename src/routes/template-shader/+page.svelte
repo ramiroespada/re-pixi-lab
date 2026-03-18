@@ -40,9 +40,9 @@
 
 	let adjustmentFilter: AdjustmentFilter = new AdjustmentFilter({
 		gamma: 1,
-		saturation: 1.5,
-		contrast: 1.2,
-		brightness: 0.2,
+		saturation: 1,
+		contrast: 1,
+		brightness: 1,
 	});
 
 	const config: Config = {
@@ -51,7 +51,7 @@
 		screenHeight: 0,
 		maxFPS: 60,
 		scale: 1,
-		source: "picture",
+		source: "bike",
 		imageX: 0,
 		imageY: 0,
 	};
@@ -112,13 +112,18 @@
 		image.x = Math.round((screenWidth - image.width) / 2);
 		image.y = Math.round((screenHeight - image.height) / 2);
 
-		thumbnail.width = 275;
-		thumbnail.height = texture.height * (275 / texture.width);
-		thumbnail.x = screenWidth - 275 - 20;
-		thumbnail.y = 20;
+		if (screenWidth <= 600) {
+			thumbnail.width = 0;
+			thumbnail.height = 0;
+		} else {
+			thumbnail.width = 300;
+			thumbnail.height = texture.height * (thumbnail.width / texture.width);
+			thumbnail.x = screenWidth - thumbnail.width;
+			thumbnail.y = 0;
+		}
 
 		if (paneContainer) {
-			paneContainer.style.top = thumbnail.height + 20 + 10 + "px";
+			paneContainer.style.top = thumbnail.height + "px";
 		}
 
 		background.clear();
@@ -144,9 +149,9 @@
 			if (video) {
 				texture = Texture.from(video);
 			}
-		} else if (config.source == "picture") {
+		} else {
 			texture = await Assets.load({
-				src: "/bg2.jpg",
+				src: "/images/" + config.source + ".jpg",
 			});
 
 			texture.source.style.addressMode = "clamp-to-edge";
@@ -278,12 +283,6 @@
 			container: paneContainer ? paneContainer : undefined,
 		});
 
-		tweakpane.on("change", () => {
-			const preset = tweakpane.exportState();
-			const str = typeof preset === "string" ? preset : JSON.stringify(preset);
-			localStorage.setItem(window.location.pathname, str);
-		});
-
 		const folderInfo = (tweakpane as FolderApi).addFolder({
 			title: "Info",
 			expanded: true,
@@ -309,7 +308,12 @@
 		folderAdjustment
 			.addBinding(config, "source", {
 				options: [
-					{ text: "picture", value: "picture" },
+					{ text: "anna", value: "anna" },
+					{ text: "bike", value: "bike" },
+					{ text: "couple", value: "couple" },
+					{ text: "erik", value: "erik" },
+					{ text: "moon", value: "moon" },
+					{ text: "valley", value: "valley" },
 					{ text: "webcam", value: "webcam" },
 				],
 			})
@@ -367,23 +371,19 @@
 				updateFilters();
 			});
 
+		/*
 		const folder = (tweakpane as FolderApi).addFolder({
 			title: "Sketch",
 		});
 
-		const saved = localStorage.getItem(window.location.pathname);
-		if (saved) {
-			const parsed = JSON.parse(saved);
-			if (typeof tweakpane.importState === "function") {
-				tweakpane.importState(parsed);
-			}
-		}
+		*/
+
 		updateFilters();
 	});
 </script>
 
 <svelte:head>
-	<title>Sketch Shader</title>
+	<title>Template</title>
 </svelte:head>
 
 <div id="app">

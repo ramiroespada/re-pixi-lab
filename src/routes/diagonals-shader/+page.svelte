@@ -52,14 +52,16 @@
 		screenHeight: 0,
 		maxFPS: 60,
 		scale: 1,
-		source: "couple",
+		source: "anna",
 		imageX: 0,
 		imageY: 0,
 		blurStrength: 0,
-		totalLines: 40,
-		pattern: "left-to-right",
+		totalLines: 75,
+		pattern: "quad",
 		inverted: false,
 		linesColor: "#ffffff",
+		quadXOrigin: 0.34,
+		quadYOrigin: 0.66,
 	};
 
 	const setImagePositionFromNormalized = (nx: number, ny: number) => {
@@ -118,13 +120,18 @@
 		image.x = Math.round((screenWidth - image.width) / 2);
 		image.y = Math.round((screenHeight - image.height) / 2);
 
-		thumbnail.width = 275;
-		thumbnail.height = texture.height * (275 / texture.width);
-		thumbnail.x = screenWidth - 275 - 20;
-		thumbnail.y = 20;
+		if (screenWidth <= 600) {
+			thumbnail.width = 0;
+			thumbnail.height = 0;
+		} else {
+			thumbnail.width = 300;
+			thumbnail.height = texture.height * (thumbnail.width / texture.width);
+			thumbnail.x = screenWidth - thumbnail.width;
+			thumbnail.y = 0;
+		}
 
 		if (paneContainer) {
-			paneContainer.style.top = thumbnail.height + 20 + 10 + "px";
+			paneContainer.style.top = thumbnail.height + "px";
 		}
 
 		background.clear();
@@ -196,6 +203,14 @@
 					uLinesColor: {
 						value: [color.r, color.g, color.b],
 						type: "vec4<f32>",
+					},
+					uQuadOriginX: {
+						value: config.quadXOrigin,
+						type: "f32",
+					},
+					uQuadOriginY: {
+						value: config.quadYOrigin,
+						type: "f32",
 					},
 				},
 			},
@@ -444,12 +459,32 @@
 				updateFilters();
 			});
 
+		folder
+			.addBinding(config, "quadXOrigin", {
+				min: 0,
+				max: 1,
+				step: 0.01,
+			})
+			.on("change", () => {
+				updateFilters();
+			});
+
+		folder
+			.addBinding(config, "quadYOrigin", {
+				min: 0,
+				max: 1,
+				step: 0.01,
+			})
+			.on("change", () => {
+				updateFilters();
+			});
+
 		updateFilters();
 	});
 </script>
 
 <svelte:head>
-	<title>Sketch Shader</title>
+	<title>Diagonals Shader</title>
 </svelte:head>
 
 <div id="app">

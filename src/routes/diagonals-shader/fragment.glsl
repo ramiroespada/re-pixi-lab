@@ -12,6 +12,8 @@ uniform float uAmountOfLines;
 uniform vec4 uLinesColor;
 uniform int uPattern; // 0 = quad, 1= top-left, 2= top-right
 uniform int uInvert;
+uniform float uQuadOriginX;
+uniform float uQuadOriginY;
 
 // Built-in PixiJS filter uniforms
 uniform vec4 uInputSize; // xy = input texture size,  zw = 1/size
@@ -47,7 +49,7 @@ void main(void) {
   // ── Quadrant detection ───────────────────────────────────────────────────────
   // quadrant: (0,0)=top-left  (1,0)=top-right
   //           (0,1)=bot-left  (1,1)=bot-right
-  vec2 quadrant = step(vec2(0.5), screenNorm);
+  vec2 quadrant = vec2(step(uQuadOriginX, screenNorm.x), step(uQuadOriginY, screenNorm.y));
 
   if (uPattern == 1)
     quadrant = vec2(0, 0);
