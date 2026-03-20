@@ -42,7 +42,7 @@
 		gamma: 1,
 		saturation: 1.5,
 		contrast: 1.2,
-		brightness: 0.2,
+		brightness: 1.2,
 	});
 
 	const config: Config = {
@@ -51,7 +51,7 @@
 		screenHeight: 0,
 		maxFPS: 60,
 		scale: 1,
-		source: "anna",
+		source: "bike",
 		imageX: 0,
 		imageY: 0,
 	};
